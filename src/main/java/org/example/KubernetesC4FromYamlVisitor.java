@@ -19,17 +19,17 @@ public class KubernetesC4FromYamlVisitor {
     public static void main(String[] args) throws Exception {
 
         try (KubernetesClient client = new KubernetesClientBuilder().build()) {
-            FileInputStream fis=new FileInputStream(new File("src/main/resources/deployment.yaml"));
+            FileInputStream fis=new FileInputStream(new File("src/main/resources/microservice.yaml"));
 
             List<HasMetadata> resources = client.load(fis).items();
-
             C4ModelBuilderVisitor visitor = new C4ModelBuilderVisitor();
             for (HasMetadata r : resources) {
                 VisitorUtils.accept(r, visitor);
             }
 
             C4DslRenderer renderer=new C4DslRenderer();
-            System.out.println(renderer.renderModel(visitor.getModel(),"prova"));
+            System.out.println(renderer.renderSpec(visitor.getModel()));
+            System.out.println(renderer.renderModel(visitor.getModel()));
 
         }
     }

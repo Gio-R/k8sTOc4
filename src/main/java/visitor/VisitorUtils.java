@@ -17,9 +17,7 @@ public class VisitorUtils {
         else visitor.visit(resource); // fallback generico
     }
 
-    public static boolean containerMatchesSelector(
-            C4Component component,
-            Map<String, String> selector) {
+    public static boolean containerMatchesSelector(C4Component component, Map<String, String> selector) {
         if (selector == null || selector.isEmpty()) return false;
         if (component.getMetadata() == null) return false;
 

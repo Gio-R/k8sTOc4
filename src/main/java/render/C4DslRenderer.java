@@ -7,7 +7,7 @@ public class C4DslRenderer {
     private static final String INDENT = "  ";
 
     // Render principale: workspace
-    public String renderModel(C4Model model, String workspaceName) {
+    public String renderModel(C4Model model) {
         StringBuilder sb = new StringBuilder();
         sb.append("model").append("{\n");
         for (C4Namespace namespace : model.getNamespaces().values()) {
@@ -18,15 +18,16 @@ public class C4DslRenderer {
     }
 
     // Render di un sistema
-    private String renderNamespace(C4Namespace system, int level) {
+    private String renderNamespace(C4Namespace namespace, int level) {
         StringBuilder sb = new StringBuilder();
         String indent = INDENT.repeat(level);
-        sb.append(indent).append("namespace ").append(system.getName()).append(" {\n");
+        sb.append(indent).append("namespace ").append(namespace.getName()).append(" {\n");
 
-        for (C4Component container : system.getComponents()) {
+        for (C4Component container : namespace.getComponents()) {
             sb.append(renderComponent(container, level + 1));
         }
 
+        sb.append(renderRelations(namespace));
         sb.append(indent).append("}\n");
         return sb.toString();
     }
@@ -62,7 +63,8 @@ public class C4DslRenderer {
         StringBuilder sb = new StringBuilder();
         String indent = INDENT.repeat(level);
 
-        sb.append(indent).append("component ")
+        //La spec deve usare i nomi degli oggetti kubernetes
+        sb.append(indent).append(component.getKind().toLowerCase()).append(" ")
                 .append(component.getName())
                 .append(" {\n");
 
@@ -88,5 +90,36 @@ public class C4DslRenderer {
         sb.append(indent).append("}\n");
         return sb.toString();
     }
+
+    // Render principale: workspace
+    public String renderRelations(C4Model model) {
+        StringBuilder sb = new StringBuilder();
+        for (C4Relationship rel: model.getRelationships()){
+            sb.append(rel.getSource()).append(" -> ").append(rel.getTarget()).append("\n");
+        }
+
+        return sb.toString();
+    }
+
+    public String renderRelations(C4Namespace namespace) {
+        StringBuilder sb = new StringBuilder();
+
+        for (C4Relationship rel: namespace.getRelationships()){
+            sb.append(rel.getSource()).append(" -> ").append(rel.getTarget()).append("\n");
+        }
+
+        return sb.toString();
+    }
+
+    public String renderSpec(C4Model model) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("specification ").append("{").append("\n");
+        for (String elementName: model.getSpecifications()){
+            sb.append("element ").append(" ").append(elementName).append("\n");
+        }
+        sb.append("}");
+        return sb.toString();
+    }
+
 }
 
