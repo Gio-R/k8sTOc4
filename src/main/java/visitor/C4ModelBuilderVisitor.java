@@ -69,7 +69,9 @@ public class C4ModelBuilderVisitor implements KubernetesResourceVisitor {
 
     private void addVolumeRelationship(C4Namespace namespace,C4Component component,Volume volume) {
         String source = component.getNamespace() + "." + component.getName();
-        String target = component.getNamespace() + "." + volume.getPersistentVolumeClaim().getClaimName();
+        String target="";
+        if ( volume.getPersistentVolumeClaim()!=null && volume.getPersistentVolumeClaim().getClaimName()!=null)
+            target = component.getNamespace() + "." + volume.getPersistentVolumeClaim().getClaimName();
         namespace.addRelationship(new C4Relationship(source,target,"mount","volume"));
     }
 
