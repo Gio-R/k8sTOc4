@@ -1,4 +1,19 @@
 {{kind}} {{id}} '{{name}}' {
   technology "{{technology}}"
   description "{{description}}"
+  //style {
+  //  icon {{icon}}
+  //}
+  metadata {
+    labels '
+        {{#labels}}
+            {{key}}: {{value}}
+        {{/labels}}
+    '
+    annotations '
+        {{#annotations}}
+            {{key}}: {{value}}
+        {{/annotations}}
+    '
+  }
 }
