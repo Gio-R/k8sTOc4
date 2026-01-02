@@ -30,6 +30,7 @@ public class C4ModelBuilderVisitor implements KubernetesResourceVisitor {
         C4Namespace namespace = getOrCreateSystem(ns);
 
         C4Component component = new C4Component(
+                statefulSet,
                 statefulSet.getMetadata().getNamespace(),
                 statefulSet.getMetadata().getName(),
                 statefulSet.getKind());
@@ -76,6 +77,7 @@ public class C4ModelBuilderVisitor implements KubernetesResourceVisitor {
         C4Namespace namespace = getOrCreateSystem(ns);
 
         C4Component component = new C4Component(
+                deployment,
                 deployment.getMetadata().getNamespace(),
                 deployment.getMetadata().getName(),
                 deployment.getKind());
@@ -116,13 +118,34 @@ public class C4ModelBuilderVisitor implements KubernetesResourceVisitor {
         namespace.addCompoments(component);
     }
 
-    private void addVolumeRelationship(C4Namespace namespace,C4Component component,Volume volume) {
+    private void addVolumeRelationship(C4Namespace namespace,C4Component component,
+                                       Volume volume) {
         String source = component.getNamespace() + "." + component.getId();
         String target="";
-        if ( volume.getPersistentVolumeClaim()!=null && volume.getPersistentVolumeClaim().getClaimName()!=null){
-            target = component.getNamespace() + ".volume_" + volume.getPersistentVolumeClaim().getClaimName();
-            namespace.addRelationship(new C4Relationship(source,target,"mount","volume"));
+        if ( volume.getPersistentVolumeClaim()!=null
+                && volume.getPersistentVolumeClaim().getClaimName()!=null){
+            target = component.getNamespace() + ".persistentvolumeclaim_" + volume.getPersistentVolumeClaim().getClaimName();
+        }// TODO gestire altri casi
+//        if ( volume.getEmptyDir()!=null ){
+//            target = component.getNamespace() + ".volume_" + volume.getName();
+//        }
+        if (volume.getProjected()!=null){
+            for(VolumeProjection projection :volume.getProjected().getSources()){
+                if(projection.getConfigMap()!=null){
+                    target = component.getNamespace() + ".configmap_" + projection.getConfigMap().getName();
+                } else if (projection.getSecret()!=null) {
+                    target = component.getNamespace() + ".secret_" + projection.getSecret().getName();
+                }
+
+            }
         }
+        if ( volume.getConfigMap()!=null ){
+            target = component.getNamespace() + ".configmap_" + volume.getConfigMap().getName();
+        }
+        if ( volume.getSecret()!=null ){
+            target = component.getNamespace() + ".secret_" + volume.getSecret().getSecretName();
+        }
+        namespace.addRelationship(new C4Relationship(source,target,"mount","volume"));
 
     }
 
@@ -162,26 +185,10 @@ public class C4ModelBuilderVisitor implements KubernetesResourceVisitor {
         String ns = Optional.ofNullable(svc.getMetadata().getNamespace()).orElse("default");
         C4Namespace namespace = getOrCreateSystem(ns);
 
-        C4Component service = new C4Component(svc.getMetadata().getNamespace(),
+        C4Component service = new C4Component(svc,svc.getMetadata().getNamespace(),
                 svc.getMetadata().getName(), svc.getKind());
         namespace.addCompoments(service);
 
-        Map<String, String> selector = svc.getSpec().getSelector();
-        if (selector != null && !selector.isEmpty()) {
-            for (C4Namespace currNamespace : model.getNamespaces().values()) {
-                for (C4Component component : currNamespace.getComponents()) {
-                    if (containerMatchesSelector(component, selector)) {
-                        namespace.addRelationship(new C4Relationship(
-                                //TODO Refactor
-                               service.getNamespace()+".service_"+service.getName(),
-                                component.getNamespace()+"."+component.getId(),
-                                "routes to",
-                                "TCP/HTTP"
-                        ));
-                    }
-                }
-            }
-        }
     }
 
     @Override
@@ -189,7 +196,7 @@ public class C4ModelBuilderVisitor implements KubernetesResourceVisitor {
         model.getSpecifications().add(ing.getKind().toLowerCase());
         String ns = Optional.ofNullable(ing.getMetadata().getNamespace()).orElse("default");
         C4Namespace namespace = getOrCreateSystem(ns);
-        C4Component ingress = new C4Component(ing.getMetadata().getNamespace(),
+        C4Component ingress = new C4Component(ing,ing.getMetadata().getNamespace(),
                 ing.getMetadata().getName(), ing.getKind());
         namespace.addCompoments(ingress);
 
@@ -207,13 +214,57 @@ public class C4ModelBuilderVisitor implements KubernetesResourceVisitor {
     }
 
     @Override
+    public void visit(io.fabric8.kubernetes.api.model.networking.v1beta1.Ingress ing) {
+        model.getSpecifications().add(ing.getKind().toLowerCase());
+        String ns = Optional.ofNullable(ing.getMetadata().getNamespace()).orElse("default");
+        C4Namespace namespace = getOrCreateSystem(ns);
+        C4Component ingress = new C4Component(ing,ing.getMetadata().getNamespace(),
+                ing.getMetadata().getName(), ing.getKind());
+        namespace.addCompoments(ingress);
+
+        for (io.fabric8.kubernetes.api.model.networking.v1beta1.IngressRule rule : ing.getSpec().getRules()) {
+            rule.getHttp().getPaths().forEach(path -> {
+                String svcName = path.getBackend().getServiceName();
+                namespace.addRelationship(new C4Relationship(
+                        ingress.getNamespace()+"."+ingress.getId(),
+                        ingress.getNamespace()+".service_"+svcName,
+                        "routes HTTP traffic",
+                        "HTTP"
+                ));
+            });
+        }
+    }
+
+    public void visit(io.fabric8.kubernetes.api.model.extensions.Ingress ing) {
+        model.getSpecifications().add(ing.getKind().toLowerCase());
+        String ns = Optional.ofNullable(ing.getMetadata().getNamespace()).orElse("default");
+        C4Namespace namespace = getOrCreateSystem(ns);
+        C4Component ingress = new C4Component(ing,ing.getMetadata().getNamespace(),
+                ing.getMetadata().getName(), ing.getKind());
+        //TODO FIX
+        ingress.setDescription(ing.getSpec().getRules().get(0).getHost());
+        namespace.addCompoments(ingress);
+
+        for (io.fabric8.kubernetes.api.model.extensions.IngressRule rule : ing.getSpec().getRules()) {
+            rule.getHttp().getPaths().forEach(path -> {
+                String svcName = path.getBackend().getServiceName();
+                namespace.addRelationship(new C4Relationship(
+                        ingress.getNamespace()+"."+ingress.getId(),
+                        ingress.getNamespace()+".service_"+svcName,
+                        "routes HTTP traffic",
+                        "HTTP"
+                ));
+            });
+        }
+    }
+
+    @Override
     public void visit(HasMetadata resource) {
         model.getSpecifications().add(resource.getKind().toLowerCase());
         String ns = Optional.ofNullable(resource.getMetadata().getNamespace()).orElse("default");
         C4Namespace system = getOrCreateSystem(ns);
-
-        C4Component container = new C4Component(resource.getMetadata().getNamespace(), resource.getMetadata().getName(), resource.getKind());
-        system.addCompoments(container);
+        C4Component component = new C4Component(resource,resource.getMetadata().getNamespace(), resource.getMetadata().getName(), resource.getKind());
+        system.addCompoments(component);
     }
 
 }

@@ -6,9 +6,7 @@ import com.github.mustachejava.MustacheFactory;
 import model.*;
 
 import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class C4DslRenderer {
 
@@ -28,18 +26,52 @@ public class C4DslRenderer {
     private String renderNamespace(C4Namespace namespace) {
         Mustache mustache = MF.compile("templates/namespace.mustache");
 
-        // Mappa i componenti con kindLower
-        List<Map<String, String>> comps = namespace.getComponents().stream().map(c -> Map.of(
-                "kind", c.getKind().toLowerCase(),
-                "id", c.getId(),
-                "name", c.getName(),
-                "technology", c.getKind(),
-                "description", c.getDescription()
-        )).toList();
+        List<Map<String, Object>> comps =
+                namespace.getComponents().stream()
+                        .map(c -> {
+                            Map<String, Object> model = new HashMap<>();
+
+                            model.put("kind", c.getKind().toLowerCase());
+                            model.put("id", c.getId().replace(".", "-"));
+                            model.put("name", c.getName());
+                            model.put("technology", c.getKind());
+                            model.put("description", c.getDescription());
+
+                            //model.put("icon", iconFor(c.getResource().getKind()));
+
+                            // 🔹 labels
+                            model.put(
+                                    "labels",
+                                    Optional.ofNullable(c.getLabels()).orElse(Map.of()).entrySet().stream()
+                                            .map(e -> Map.of(
+                                                    "key", e.getKey(),
+                                                    "value", e.getValue()
+                                            ))
+                                            .toList()
+                            );
+
+                            // 🔹 annotations
+                            model.put(
+                                    "annotations",
+                                    Optional.ofNullable(c.getAnnotations()).orElse(Map.of()).entrySet().stream()
+                                            .map(e -> Map.of(
+                                                    "key", e.getKey(),
+                                                    "value", e.getValue()
+                                            ))
+                                            .toList()
+                            );
+
+                            return model;
+                        })
+                        .toList();
+
+
         List<String> relations= new ArrayList<>();
+
         for (C4Relationship rel: namespace.getRelationships()){
             relations.add(rel.getSource()+" -> "+rel.getTarget());
         }
+
         Map<String, Object> ctx = Map.of(
                 "name", namespace.getName(),
                 "components", comps,
@@ -51,33 +83,15 @@ public class C4DslRenderer {
         return writer.toString();
     }
 
-//    // Render di un container
-//    private String renderContainer(C4Container container, int level) {
-//        StringBuilder sb = new StringBuilder();
-//        String indent = INDENT.repeat(level);
-//
-//        sb.append(indent).append("container ").append(container.getName()).append(" {\n");
-//        sb.append(indent).append(INDENT)
-//                .append("technology \"").append(container.getType()).append("\"\n");
-//
-//        // Aggiunge metadata come description se presente
-//        if (!container.getMetadata().isEmpty()) {
-//            for (var entry : container.getMetadata().entrySet()) {
-//                sb.append(indent).append(INDENT)
-//                        .append(entry.getKey()).append(" \"").append(entry.getValue()).append("\"\n");
-//            }
-//        }
-//
-//        // Aggiunge componenti
-//        for (C4Component comp : container.getComponents()) {
-//            sb.append(renderComponent(comp, level + 1));
-//        }
-//
-//        sb.append(indent).append("}\n");
-//        return sb.toString();
-//    }
-
-
+    private String iconFor(String kind) {
+        return switch (kind) {
+            case "Deployment" -> "kubernetes/deployment";
+            case "StatefulSet" -> "kubernetes/statefulset";
+            case "DaemonSet" -> "kubernetes/daemonset";
+            case "Job" -> "kubernetes/job";
+            default -> "default";
+        };
+    }
 
     // Render principale: workspace
     public String renderRelations(C4Model model) {

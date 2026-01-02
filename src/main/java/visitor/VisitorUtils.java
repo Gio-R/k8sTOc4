@@ -16,6 +16,8 @@ public class VisitorUtils {
         else if (resource instanceof StatefulSet s) visitor.visit(s);
         else if (resource instanceof Service s) visitor.visit(s);
         else if (resource instanceof Ingress i) visitor.visit(i);
+        else if (resource instanceof io.fabric8.kubernetes.api.model.networking.v1beta1.Ingress i) visitor.visit(i);
+        else if (resource instanceof io.fabric8.kubernetes.api.model.extensions.Ingress i) visitor.visit(i);
         else visitor.visit(resource); // fallback generico
     }
 
