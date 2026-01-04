@@ -1,13 +1,15 @@
-package render;
+package com.k8stoc4.render;
 
 import com.github.mustachejava.DefaultMustacheFactory;
 import com.github.mustachejava.Mustache;
 import com.github.mustachejava.MustacheFactory;
-import model.*;
+import lombok.extern.slf4j.Slf4j;
+import com.k8stoc4.model.*;
 
 import java.io.StringWriter;
 import java.util.*;
 
+@Slf4j
 public class C4DslRenderer {
 
     private static final MustacheFactory MF = new DefaultMustacheFactory();
@@ -66,10 +68,10 @@ public class C4DslRenderer {
                         .toList();
 
 
-        List<String> relations= new ArrayList<>();
+        List<String> relations = new ArrayList<>();
 
-        for (C4Relationship rel: namespace.getRelationships()){
-            relations.add(rel.getSource()+" -> "+rel.getTarget());
+        for (C4Relationship rel : namespace.getRelationships()) {
+            relations.add(rel.getSource() + " -> " + rel.getTarget());
         }
 
         Map<String, Object> ctx = Map.of(
@@ -83,17 +85,6 @@ public class C4DslRenderer {
         return writer.toString();
     }
 
-    private String iconFor(String kind) {
-        return switch (kind) {
-            case "Deployment" -> "kubernetes/deployment";
-            case "StatefulSet" -> "kubernetes/statefulset";
-            case "DaemonSet" -> "kubernetes/daemonset";
-            case "Job" -> "kubernetes/job";
-            default -> "default";
-        };
-    }
-
-    // Render principale: workspace
     public String renderRelations(C4Model model) {
         StringBuilder sb = new StringBuilder();
         for (C4Relationship rel: model.getRelationships()){
@@ -114,4 +105,3 @@ public class C4DslRenderer {
     }
 
 }
-

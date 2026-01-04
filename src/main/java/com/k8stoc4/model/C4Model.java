@@ -1,4 +1,4 @@
-package model;
+package com.k8stoc4.model;
 
 import lombok.Getter;
 import lombok.Setter;

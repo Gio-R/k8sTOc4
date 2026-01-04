@@ -1,12 +1,12 @@
-package cli.commands;
+package com.k8stoc4.cli.commands;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import picocli.CommandLine;
-import render.C4DslRenderer;
-import visitor.C4ModelBuilderVisitor;
-import visitor.VisitorUtils;
+import com.k8stoc4.render.C4DslRenderer;
+import com.k8stoc4.visitor.C4ModelBuilderVisitor;
+import com.k8stoc4.visitor.VisitorUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -40,40 +40,36 @@ public class ParseCommand implements Runnable {
 
     @Override
     public void run() {
-        try (KubernetesClient client = new KubernetesClientBuilder().build()) {
-            FileInputStream fis= null;
-            try {
-                fis = new FileInputStream(new File(input));
-            } catch (FileNotFoundException e) {
-                throw new RuntimeException(e);
-            }
+        try (KubernetesClient client = new KubernetesClientBuilder().build();
+             FileInputStream fis = new FileInputStream(new File(input))) {
 
             List<HasMetadata> resources = client.load(fis).items();
             C4ModelBuilderVisitor visitor = new C4ModelBuilderVisitor();
             for (HasMetadata r : resources) {
                 VisitorUtils.accept(r, visitor);
             }
-
+            visitor.addServiceRelationships();
             C4DslRenderer renderer=new C4DslRenderer();
-            if(output.isPresent()){
+
+            if (output.isPresent()) {
                 try {
-
-                    Files.writeString(Paths.get(output.get(),"spec.c4"),
-                            renderer.renderSpec(visitor.getModel()), StandardOpenOption.CREATE,      // crea il file se non esiste
+                    Files.writeString(Paths.get(output.get(), "spec.c4"),
+                            renderer.renderSpec(visitor.getModel()), StandardOpenOption.CREATE,
                             StandardOpenOption.TRUNCATE_EXISTING);
-                    Files.writeString(Paths.get(output.get(),"model.c4"),
-                            renderer.renderModel(visitor.getModel()), StandardOpenOption.CREATE,      // crea il file se non esiste
+                    Files.writeString(Paths.get(output.get(), "model.c4"),
+                            renderer.renderModel(visitor.getModel()), StandardOpenOption.CREATE,
                             StandardOpenOption.TRUNCATE_EXISTING);
-
                 } catch (IOException e) {
-                    throw new RuntimeException(e);
+                    throw new RuntimeException("Failed to write output files", e);
                 }
-            }else{
+            } else {
                 System.out.println(renderer.renderSpec(visitor.getModel()));
                 System.out.println(renderer.renderModel(visitor.getModel()));
-
             }
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException("Input file not found: " + input, e);
+        } catch (IOException e) {
+            throw new RuntimeException("Error reading input file: " + input, e);
         }
     }
 }
-

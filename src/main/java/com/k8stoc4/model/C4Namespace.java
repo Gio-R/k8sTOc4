@@ -1,4 +1,4 @@
-package model;
+package com.k8stoc4.model;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -16,6 +16,6 @@ public class C4Namespace {
     private Set<C4Relationship> relationships = new HashSet<>();
 
     public C4Namespace(String name) { this.name = name; }
-    public void addCompoments(C4Component c) { components.add(c); }
+    public void addComponents(C4Component c) { components.add(c); }
     public void addRelationship(C4Relationship r) { relationships.add(r); }
 }

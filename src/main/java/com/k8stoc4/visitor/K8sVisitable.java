@@ -1,4 +1,4 @@
-package visitor;
+package com.k8stoc4.visitor;
 
 public interface K8sVisitable {
 

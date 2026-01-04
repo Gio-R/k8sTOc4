@@ -1,13 +1,13 @@
-package cli;
+package com.k8stoc4.cli;
 
-import cli.commands.ParseCommand;
+import com.k8stoc4.cli.commands.ParseCommand;
 import picocli.CommandLine;
 
 @CommandLine.Command(
         name = "k8stoc4",
         mixinStandardHelpOptions = true,
         version = "1.0",
-        description = "Esempio semplice con Picocli",
+        description = "CLI tool per convertire manifest Kubernetes in diagrammi C4",
         subcommands = {ParseCommand.class}
 )
 public class Main implements Runnable {
@@ -19,6 +19,6 @@ public class Main implements Runnable {
 
     @Override
     public void run() {
-        System.out.println("Usa un sottocomando: hello | sum");
+        System.out.println("Usa un sottocomando: parse");
     }
 }

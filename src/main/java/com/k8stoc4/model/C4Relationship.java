@@ -1,4 +1,4 @@
-package model;
+package com.k8stoc4.model;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -10,10 +10,10 @@ import lombok.ToString;
 @ToString
 @EqualsAndHashCode
 public class C4Relationship {
-    public String source;      // nome container o component
-    public String target;      // nome container o component
-    public String description; // es: "HTTP request"
-    public String technology;  // es: "REST API"
+    public String source;      
+    public String target;      
+    public String description; 
+    public String technology;  
 
     public C4Relationship(String source,
                           String target,
