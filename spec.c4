@@ -1,18 +1,8 @@
 specification {
-element  serviceaccount
-element  poddisruptionbudget
 element  persistentvolumeclaim
-element  role
-element  secret
-element  daemonset
-element  persistentvolume
-element  ingress
 element  service
-element  configmap
-element  statefulset
 element  namespace
-element  horizontalpodautoscaler
-element  rolebinding
+element  secret
 element  deployment
 element  labelgroup
 }
