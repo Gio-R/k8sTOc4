@@ -1,7 +1,10 @@
 package com.k8stoc4.model;
 
+import java.util.Set;
+
 public class Constants {
     public static final String DEFAULT_NAMESPACE = "default";
+    public static final String CLUSTER_LEVEL = "cluster";
     public static final String MOUNT_RELATIONSHIP = "mount";
     public static final String ROUTES_TO_RELATIONSHIP = "routes to";
     public static final String ROUTES_HTTP_RELATIONSHIP = "routes HTTP traffic";
@@ -22,4 +25,33 @@ public class Constants {
     public static final String TECHNOLOGY_PV = "pv";
     public static final String TECHNOLOGY_STORAGECLASS = "storageclass";
     public static final String BUNDS_RELATIONSHIP = "binds";
+
+    public static final Set<String> CLUSTER_SCOPED_RESOURCES = Set.of(
+        "PersistentVolume",
+        "StorageClass",
+        "ClusterRole",
+        "ClusterRoleBinding",
+        "Node",
+        "Namespace",
+        "VolumeSnapshot",
+        "VolumeSnapshotClass",
+        "VolumeSnapshotContent",
+        "CSIDriver",
+        "CSINode",
+        "CSIStorageCapacity",
+        "MutatingWebhookConfiguration",
+        "ValidatingWebhookConfiguration",
+        "CustomResourceDefinition",
+        "APIService",
+        "RuntimeClass",
+        "PriorityClass",
+        "PodSecurityPolicy",
+        "Lease",
+        "IngressClass",
+        "CertificateSigningRequest"
+    );
+
+    public static boolean isClusterScoped(String kind) {
+        return CLUSTER_SCOPED_RESOURCES.contains(kind);
+    }
 }

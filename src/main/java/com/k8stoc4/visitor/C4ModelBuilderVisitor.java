@@ -30,6 +30,10 @@ public class C4ModelBuilderVisitor implements KubernetesResourceVisitor {
         return model.getNamespaces().computeIfAbsent(ns, C4Namespace::new);
     }
 
+    private boolean isClusterScopedResource(HasMetadata resource) {
+        return Constants.isClusterScoped(resource.getKind());
+    }
+
     public void addServiceRelationships() {
         for (String ns : model.getNamespaces().keySet()) {
             C4Namespace namespace = model.getNamespaces().get(ns);
@@ -207,23 +211,50 @@ public class C4ModelBuilderVisitor implements KubernetesResourceVisitor {
     }
 
     private void addPVPVCRelationships() {
-        for (String ns : model.getNamespaces().keySet()) {
-            C4Namespace namespace = model.getNamespaces().get(ns);
-            for (C4Component component : namespace.getComponents()) {
-                if (component.getResource() instanceof PersistentVolume pv && pv.getSpec().getClaimRef() != null) {
+        for (C4Component component : model.getClusterScopedComponents()) {
+            if (component.getResource() instanceof PersistentVolume pv) {
+                if (pv.getSpec().getClaimRef() != null) {
                     String claimName = pv.getSpec().getClaimRef().getName();
                     String claimNamespace = pv.getSpec().getClaimRef().getNamespace();
-                    
-                    for (C4Component targetComp : namespace.getComponents()) {
-                        if (targetComp.getKind().equalsIgnoreCase("PersistentVolumeClaim") &&
-                            targetComp.getName().equals(claimName)) {
-                            C4Relationship rel = new C4Relationship(
-                                component.getNamespace() + "." + component.getId(),
-                                targetComp.getNamespace() + "." + targetComp.getId(),
-                                Constants.BOUNDS_RELATIONSHIP,
-                                Constants.TECHNOLOGY_PV
-                            );
-                            namespace.addRelationship(rel);
+
+                    for (String ns : model.getNamespaces().keySet()) {
+                        C4Namespace namespace = model.getNamespaces().get(ns);
+                        if (namespace.getName().equals(claimNamespace)) {
+                            for (C4Component targetComp : namespace.getComponents()) {
+                                if (targetComp.getKind().equalsIgnoreCase("PersistentVolumeClaim") &&
+                                    targetComp.getName().equals(claimName)) {
+                                    C4Relationship rel = new C4Relationship(
+                                        component.getId(),
+                                        targetComp.getNamespace() + "." + targetComp.getId(),
+                                        Constants.BOUNDS_RELATIONSHIP,
+                                        Constants.TECHNOLOGY_PV
+                                    );
+                                    model.addRelationship(rel);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        for (String ns : model.getNamespaces().keySet()) {
+            C4Namespace namespace = model.getNamespaces().get(ns);
+            for (C4Component pvcComponent : namespace.getComponents()) {
+                if (pvcComponent.getResource() instanceof io.fabric8.kubernetes.api.model.PersistentVolumeClaim pvc) {
+                    String volumeName = pvc.getSpec().getVolumeName();
+                    if (volumeName != null) {
+                        for (C4Component pvComponent : model.getClusterScopedComponents()) {
+                            if (pvComponent.getResource() instanceof PersistentVolume pv &&
+                                pv.getMetadata().getName().equals(volumeName)) {
+                                C4Relationship rel = new C4Relationship(
+                                    pvComponent.getId(),
+                                    pvcComponent.getNamespace() + "." + pvcComponent.getId(),
+                                    Constants.BOUNDS_RELATIONSHIP,
+                                    Constants.TECHNOLOGY_PV
+                                );
+                                model.addRelationship(rel);
+                            }
                         }
                     }
                 }
@@ -232,23 +263,28 @@ public class C4ModelBuilderVisitor implements KubernetesResourceVisitor {
     }
 
     private void addStorageClassRelationships() {
-        for (String ns : model.getNamespaces().keySet()) {
-            C4Namespace namespace = model.getNamespaces().get(ns);
-            for (C4Component component : namespace.getComponents()) {
-                if (component.getResource() instanceof StorageClass sc) {
-                    String scName = sc.getMetadata().getName();
+        log.info("Adding StorageClass relationships. Cluster scoped components: {}", model.getClusterScopedComponents().size());
 
-                    for (C4Component targetComp : namespace.getComponents()) {
-                        if (targetComp.getResource() instanceof PersistentVolume pv && pv.getSpec().getStorageClassName() != null) {
-                            if (pv.getSpec().getStorageClassName().equals(scName)) {
-                                C4Relationship rel = new C4Relationship(
-                                    component.getId(),
-                                    targetComp.getNamespace() + "." + targetComp.getId(),
-                                    Constants.BUNDS_RELATIONSHIP,
-                                    Constants.TECHNOLOGY_STORAGECLASS
-                                );
-                                namespace.addRelationship(rel);
-                            }
+        for (C4Component scComponent : model.getClusterScopedComponents()) {
+            if (scComponent.getResource() instanceof StorageClass sc) {
+                String scName = sc.getMetadata().getName();
+                log.info("Found StorageClass: {}", scName);
+
+                for (C4Component pvComponent : model.getClusterScopedComponents()) {
+                    if (pvComponent.getResource() instanceof PersistentVolume pv) {
+                        String pvStorageClassName = pv.getSpec().getStorageClassName();
+                        log.info("PV {} has storageClassName: {}", pvComponent.getId(), pvStorageClassName);
+
+                        if (pvStorageClassName != null && pvStorageClassName.equals(scName)) {
+                            log.info("Creating relationship: {} -> {} (binds)", scComponent.getId(), pvComponent.getId());
+                            C4Relationship rel = new C4Relationship(
+                                scComponent.getId(),
+                                pvComponent.getId(),
+                                Constants.BUNDS_RELATIONSHIP,
+                                Constants.TECHNOLOGY_STORAGECLASS
+                            );
+                            model.addRelationship(rel);
+                            log.info("Relationship added successfully");
                         }
                     }
                 }
@@ -533,10 +569,16 @@ public class C4ModelBuilderVisitor implements KubernetesResourceVisitor {
     @Override
     public void visit(HasMetadata resource) {
         model.getSpecifications().add(resource.getKind().toLowerCase());
-        String ns = Optional.ofNullable(resource.getMetadata().getNamespace()).orElse(Constants.DEFAULT_NAMESPACE);
-        C4Namespace system = getOrCreateSystem(ns);
         C4Component component = new C4Component(resource, resource.getMetadata().getNamespace(), resource.getMetadata().getName(), resource.getKind());
-        system.addComponents(component);
+        
+        if (isClusterScopedResource(resource)) {
+            component.setNamespace(Constants.CLUSTER_LEVEL);
+            model.addClusterScopedComponent(component);
+        } else {
+            String ns = Optional.ofNullable(resource.getMetadata().getNamespace()).orElse(Constants.DEFAULT_NAMESPACE);
+            C4Namespace system = getOrCreateSystem(ns);
+            system.addComponents(component);
+        }
     }
 
 }

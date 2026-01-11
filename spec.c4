@@ -1,8 +1,74 @@
 specification {
-element  persistentvolumeclaim
-element  service
-element  namespace
-element  secret
-element  deployment
-element  labelgroup
+element  serviceaccount{
+    style {
+            icon /images/sa.svg
+        }
+}
+element  poddisruptionbudget
+element  persistentvolumeclaim{
+    style {
+            icon /images/pvc.svg
+        }
+}
+element  role{
+    style {
+            icon /images/role.svg
+        }
+}
+element  secret{
+    style {
+            icon /images/secret.svg
+        }
+}
+element  daemonset{
+     style {
+            icon /images/ds.svg
+        }
+}
+element  persistentvolume{
+    style {
+            icon /images/pv.svg
+        }
+}
+element  ingress{
+    style {
+            icon /images/ing.svg
+        }
+}
+element  service{
+    style {
+            icon /images/cm.svg
+        }
+}
+element  configmap{
+     style {
+            icon /images/cm.svg
+        }
+}
+element  statefulset{
+    style {
+            icon /images/sts.svg
+        }
+}
+element  namespace{
+     style {
+            icon /images/ns.svg
+        }
+}
+element  horizontalpodautoscaler{
+    style {
+            icon /images/hpa.svg
+        }
+}
+element  rolebinding{
+    style {
+            icon /images/rb.svg
+        }
+}
+element  deployment{
+     style {
+            icon /images/deploy.svg
+        }
+}
+element labelgroup
 }

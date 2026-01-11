@@ -1,5 +1,5 @@
 views {
     view prova{
-        include default, default.**
+        include demo-app, demo-app.**
     }
 }

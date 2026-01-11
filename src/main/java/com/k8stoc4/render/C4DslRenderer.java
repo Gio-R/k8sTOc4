@@ -18,10 +18,69 @@ public class C4DslRenderer {
     public String renderModel(C4Model model) {
         StringBuilder sb = new StringBuilder();
         sb.append("model").append("{\n");
+        sb.append(renderClusterScoped(model));
         for (C4Namespace namespace : model.getNamespaces().values()) {
             sb.append(renderNamespace(namespace));
         }
         sb.append("}\n");
+        return sb.toString();
+    }
+
+    private String renderClusterScoped(C4Model model) {
+        if (model.getClusterScopedComponents() == null || model.getClusterScopedComponents().isEmpty()) {
+            return "";
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("  // Cluster-scoped resources\n");
+
+        List<Map<String, Object>> comps = model.getClusterScopedComponents().stream()
+                .map(c -> {
+                    Map<String, Object> modelData = new HashMap<>();
+                    modelData.put("kind", c.getKind().toLowerCase());
+                    modelData.put("id", c.getId().replace(".", "-"));
+                    modelData.put("name", c.getName());
+                    modelData.put("technology", c.getKind());
+                    modelData.put("description", c.getDescription());
+
+                    modelData.put(
+                            "labels",
+                            Optional.ofNullable(c.getLabels()).orElse(Map.of()).entrySet().stream()
+                                    .map(e -> Map.of(
+                                            "key", e.getKey(),
+                                            "value", e.getValue()
+                                    ))
+                                    .toList()
+                    );
+
+                    modelData.put(
+                            "annotations",
+                            Optional.ofNullable(c.getAnnotations()).orElse(Map.of()).entrySet().stream()
+                                    .map(e -> Map.of(
+                                            "key", e.getKey(),
+                                            "value", e.getValue()
+                                    ))
+                                    .toList()
+                    );
+
+                    return modelData;
+                })
+                .toList();
+
+        for (Map<String, Object> comp : comps) {
+            sb.append("  ").append(comp.get("kind")).append(" ").append(comp.get("id")).append(" '").append(comp.get("name")).append("' {\n");
+            sb.append("    technology \"").append(comp.get("technology")).append("\"\n");
+            sb.append("    description \"").append(comp.get("description")).append("\"\n");
+            sb.append("  }\n");
+        }
+
+        sb.append("  // Cross-scope relationships\n");
+        List<C4Relationship> modelRelationships = new ArrayList<>(model.getRelationships());
+        sb.append("  // Total model relationships: ").append(modelRelationships.size()).append("\n");
+        for (C4Relationship rel : modelRelationships) {
+            sb.append("  ").append(rel.getSource()).append(" -> ").append(rel.getTarget()).append("\n");
+        }
+
         return sb.toString();
     }
 

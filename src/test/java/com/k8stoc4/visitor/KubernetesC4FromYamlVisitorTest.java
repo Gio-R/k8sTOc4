@@ -32,6 +32,7 @@ class KubernetesC4FromYamlVisitorTest {
 
             verifyNamespace(model);
             verifyComponents(model);
+            verifyClusterScoped(model);
             verifySpecifications(model);
             verifyDeploymentToServiceRelationships(model);
             verifyIngressToServiceRelationships(model);
@@ -45,9 +46,22 @@ class KubernetesC4FromYamlVisitorTest {
     private void verifyNamespace(C4Model model) {
         Map<String, C4Namespace> namespaces = model.getNamespaces();
         assertTrue(namespaces.containsKey("demo-app"), "Should contain demo-app namespace");
-        
+
         C4Namespace namespace = namespaces.get("demo-app");
         assertEquals("demo-app", namespace.getName());
+    }
+
+    private void verifyClusterScoped(C4Model model) {
+        assertTrue(model.getClusterScopedComponents().size() > 0, "Should have cluster-scoped components");
+
+        C4Component pv = model.getClusterScopedComponents().stream()
+                .filter(c -> c.getKind().equals("PersistentVolume"))
+                .findFirst()
+                .orElse(null);
+
+        assertNotNull(pv, "Should have PersistentVolume as cluster-scoped component");
+        assertEquals("demo-pv", pv.getName());
+        assertEquals(Constants.CLUSTER_LEVEL, pv.getNamespace());
     }
 
     private void verifyComponents(C4Model model) {
@@ -57,7 +71,7 @@ class KubernetesC4FromYamlVisitorTest {
         Map<String, C4Component> components = namespace.getComponents().stream()
                 .collect(java.util.stream.Collectors.toMap(C4Component::getId, c -> c));
 
-        assertEquals(22, components.size(), "Should have 22 components");
+        assertEquals(22, components.size(), "Should have 22 components (PersistentVolume is now cluster-scoped, Namespace is also cluster-scoped)");
 
         C4Component postgresDeployment = components.get("statefulset_postgres");
         assertNotNull(postgresDeployment, "Postgres statefulset should exist");
