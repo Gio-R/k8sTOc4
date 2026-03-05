@@ -500,10 +500,12 @@ public class C4ModelBuilderVisitor implements KubernetesResourceVisitor {
         }
     }
 
-    private void addVolumeRelationship(C4Namespace namespace, C4Component component, Volume volume) {
+    private void addVolumeRelationship(C4Namespace namespace,
+                                       C4Component component,
+                                       Volume volume) {
         String source = component.getNamespace() + "." + component.getId();
         String target = "";
-        
+
         if (volume.getPersistentVolumeClaim() != null && volume.getPersistentVolumeClaim().getClaimName() != null) {
             target = component.getNamespace() + ".persistentvolumeclaim_" + volume.getPersistentVolumeClaim().getClaimName();
         }
@@ -521,6 +523,9 @@ public class C4ModelBuilderVisitor implements KubernetesResourceVisitor {
         }
         if (volume.getSecret() != null) {
             target = component.getNamespace() + ".secret_" + volume.getSecret().getSecretName();
+        }
+        if (volume.getEmptyDir() != null){
+            //target = component.getNamespace() + ".secret_" + volume.getSecret().getSecretName();
         }
         
         if (!target.isEmpty()) {

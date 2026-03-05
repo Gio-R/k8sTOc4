@@ -39,8 +39,8 @@ Questo tool trasforma risorse Kubernetes (Deployment, Service, Ingress, ConfigMa
 
 ```bash
 git clone <repository-url>
-cd k8sToC4Cli
-mvn clean package
+cd k8sTOc4
+mvn -B -DskipTests=false package
 ```
 
 ## Utilizzo
@@ -160,4 +160,4 @@ namespace my-namespace {
 
 ## License
 
-Questo progetto è distribuito sotto la Licenza MIT - vedi il file LICENSE per dettagli.
+Questo progetto è distribuito sotto la Apache License 2.0 - vedi il file LICENSE per dettagli.
