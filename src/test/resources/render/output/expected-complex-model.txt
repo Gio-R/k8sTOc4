@@ -1,0 +1,270 @@
+model {
+  // Cluster-scoped resources
+  namespace namespace_demo-app 'demo-app' {
+    technology "Namespace"
+    description ""
+  }
+  persistentvolume persistentvolume_demo-pv 'demo-pv' {
+    technology "PersistentVolume"
+    description ""
+  }
+  // Cross-scope relationships
+  // Total model relationships: 1
+  persistentvolume_demo-pv -> demo-app.persistentvolumeclaim_postgres-pvc
+    namespace demo-app {
+        serviceaccount serviceaccount_demo-app-sa 'demo-app-sa' {
+            technology "ServiceAccount"
+            description ""
+            metadata {
+                labels '
+                '
+                annotations '
+                '
+            }
+        }
+        role role_demo-app-role 'demo-app-role' {
+            technology "Role"
+            description ""
+            metadata {
+                labels '
+                '
+                annotations '
+                '
+            }
+        }
+        rolebinding rolebinding_demo-app-rb 'demo-app-rb' {
+            technology "RoleBinding"
+            description ""
+            metadata {
+                labels '
+                '
+                annotations '
+                '
+            }
+        }
+        configmap configmap_frontend-config 'frontend-config' {
+            technology "ConfigMap"
+            description ""
+            metadata {
+                labels '
+                '
+                annotations '
+                '
+            }
+        }
+        secret secret_db-credentials 'db-credentials' {
+            technology "Secret"
+            description ""
+            metadata {
+                labels '
+                '
+                annotations '
+                '
+            }
+        }
+        persistentvolumeclaim persistentvolumeclaim_postgres-pvc 'postgres-pvc' {
+            technology "PersistentVolumeClaim"
+            description ""
+            metadata {
+                labels '
+                '
+                annotations '
+                '
+            }
+        }
+        statefulset statefulset_postgres 'postgres' {
+            technology "StatefulSet"
+            description ""
+            metadata {
+                labels '
+                    app: postgres
+                '
+                annotations '
+                '
+            }
+        }
+        service service_postgres 'postgres' {
+            technology "Service"
+            description ""
+            metadata {
+                labels '
+                    app: postgres
+                '
+                annotations '
+                '
+            }
+        }
+        deployment deployment_redis 'redis' {
+            technology "Deployment"
+            description ""
+            metadata {
+                labels '
+                    app: redis
+                '
+                annotations '
+                '
+            }
+        }
+        service service_redis 'redis' {
+            technology "Service"
+            description ""
+            metadata {
+                labels '
+                '
+                annotations '
+                '
+            }
+        }
+        deployment deployment_message-broker 'message-broker' {
+            technology "Deployment"
+            description ""
+            metadata {
+                labels '
+                    app: rabbitmq
+                '
+                annotations '
+                '
+            }
+        }
+        service service_message-broker 'message-broker' {
+            technology "Service"
+            description ""
+            metadata {
+                labels '
+                    app: rabbitmq
+                '
+                annotations '
+                '
+            }
+        }
+        deployment deployment_backend 'backend' {
+            technology "Deployment"
+            description ""
+            metadata {
+                labels '
+                    app: backend
+                '
+                annotations '
+                '
+            }
+        }
+        service service_backend 'backend' {
+            technology "Service"
+            description ""
+            metadata {
+                labels '
+                    app: backend
+                '
+                annotations '
+                '
+            }
+        }
+        deployment deployment_auth 'auth' {
+            technology "Deployment"
+            description ""
+            metadata {
+                labels '
+                    app: auth
+                '
+                annotations '
+                '
+            }
+        }
+        service service_auth 'auth' {
+            technology "Service"
+            description ""
+            metadata {
+                labels '
+                    app: auth
+                '
+                annotations '
+                '
+            }
+        }
+        deployment deployment_frontend 'frontend' {
+            technology "Deployment"
+            description ""
+            metadata {
+                labels '
+                    app: frontend
+                '
+                annotations '
+                '
+            }
+        }
+        service service_frontend 'frontend' {
+            technology "Service"
+            description ""
+            metadata {
+                labels '
+                    app: frontend
+                '
+                annotations '
+                '
+            }
+        }
+        ingress ingress_demo-ingress 'demo-ingress' {
+            technology "Ingress"
+            description ""
+            metadata {
+                labels '
+                    app: frontend
+                '
+                annotations '
+                    nginx.ingress.kubernetes.io/rewrite-target: /
+                '
+            }
+        }
+        horizontalpodautoscaler horizontalpodautoscaler_backend-hpa 'backend-hpa' {
+            technology "HorizontalPodAutoscaler"
+            description ""
+            metadata {
+                labels '
+                    app: backend
+                '
+                annotations '
+                '
+            }
+        }
+        poddisruptionbudget poddisruptionbudget_backend-pdb 'backend-pdb' {
+            technology "PodDisruptionBudget"
+            description ""
+            metadata {
+                labels '
+                    app: backend
+                '
+                annotations '
+                '
+            }
+        }
+        daemonset daemonset_node-logger 'node-logger' {
+            technology "DaemonSet"
+            description ""
+            metadata {
+                labels '
+                    app: node-logger
+                '
+                annotations '
+                '
+            }
+        }
+        demo-app.statefulset_postgres -> demo-app.secret_db-credentials
+        demo-app.deployment_backend -> demo-app.secret_db-credentials
+        demo-app.deployment_frontend -> demo-app.configmap_frontend-config
+        demo-app.ingress_demo-ingress -> demo-app.service_frontend
+        demo-app.ingress_demo-ingress -> demo-app.service_backend
+        demo-app.ingress_demo-ingress -> demo-app.service_auth
+        demo-app.service_postgres -> demo-app.statefulset_postgres
+        demo-app.service_redis -> demo-app.deployment_redis
+        demo-app.service_message-broker -> demo-app.deployment_message-broker
+        demo-app.service_backend -> demo-app.deployment_backend
+        demo-app.service_auth -> demo-app.deployment_auth
+        demo-app.service_frontend -> demo-app.deployment_frontend
+        demo-app.horizontalpodautoscaler_backend-hpa -> demo-app.deployment_backend
+        demo-app.poddisruptionbudget_backend-pdb -> demo-app.deployment_backend
+        demo-app.statefulset_postgres -> demo-app.serviceaccount_demo-app-sa
+        demo-app.deployment_backend -> demo-app.serviceaccount_demo-app-sa
+        demo-app.rolebinding_demo-app-rb -> demo-app.role_demo-app-role
+        demo-app.serviceaccount_demo-app-sa -> demo-app.rolebinding_demo-app-rb
+    }
+}

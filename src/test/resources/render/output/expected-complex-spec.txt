@@ -1,0 +1,17 @@
+specification {
+    element namespace
+    element serviceaccount
+    element role
+    element rolebinding
+    element configmap
+    element secret
+    element persistentvolume
+    element persistentvolumeclaim
+    element statefulset
+    element service
+    element deployment
+    element ingress
+    element horizontalpodautoscaler
+    element poddisruptionbudget
+    element daemonset
+}
