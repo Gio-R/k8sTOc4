@@ -4,7 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 @Getter
@@ -14,8 +14,8 @@ public class C4LabelGroup {
     private String name;
     private String labelKey;
     private String labelValue;
-    private Set<C4Component> components = new HashSet<>();
-    private Set<C4Relationship> relationships = new HashSet<>();
+    private Set<C4Component> components = new LinkedHashSet<>();
+    private Set<C4Relationship> relationships = new LinkedHashSet<>();
 
     public C4LabelGroup(String name, String labelKey, String labelValue) {
         this.name = name;

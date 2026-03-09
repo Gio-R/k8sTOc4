@@ -4,20 +4,17 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @Getter
 @Setter
 @ToString
 public class C4Namespace {
     private String name;
-    private Set<C4Component> components = new HashSet<>();
-    private Set<C4LabelGroup> labelGroups = new HashSet<>();
-    private Set<C4Relationship> relationships = new HashSet<>();
-    private Map<String, C4LabelGroup> labelGroupIndex = new HashMap<>();
+    private Set<C4Component> components = new LinkedHashSet<>();
+    private Set<C4LabelGroup> labelGroups = new LinkedHashSet<>();
+    private Set<C4Relationship> relationships = new LinkedHashSet<>();
+    private Map<String, C4LabelGroup> labelGroupIndex = new LinkedHashMap<>();
 
     public C4Namespace(String name) { this.name = name; }
     public void addComponents(C4Component c) { components.add(c); }

@@ -7,7 +7,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -23,8 +23,8 @@ public class C4Component {
     private String image;
     private String kind;
     private String description = "";
-    private Map<String, String> metadata = new HashMap<>();
-    private Map<String, String> env = new HashMap<>();
+    private Map<String, String> metadata = new LinkedHashMap<>();
+    private Map<String, String> env = new LinkedHashMap<>();
     private HasMetadata resource;
     
     public C4Component(HasMetadata resource, String namespace, String name, String kind) {
