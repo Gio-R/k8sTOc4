@@ -181,8 +181,8 @@ public class C4DslRenderer {
     private String renderSpec(C4Model model) {
         StringBuilder sb = new StringBuilder();
         sb.append("specification ").append("{").append("\n");
-        for (String elementName: model.getSpecifications()){
-            sb.append("element ").append(" ").append(elementName).append("\n");
+        for (String elementName: model.getSpecifications()) {
+            sb.append("    ").append("element").append(" ").append(elementName).append("\n");
         }
         sb.append("}");
         return sb.toString();
