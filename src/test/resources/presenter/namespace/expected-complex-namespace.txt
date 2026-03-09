@@ -1,0 +1,98 @@
+namespace complex {
+    labelgroup layer_database {
+        deployment deployment_postgres 'postgres' {
+            technology "Deployment"
+            description ""
+            metadata {
+                labels '
+                    layer: database
+                '
+                annotations '
+                '
+            }
+        }
+        service service_postgres-service 'postgres-service' {
+            technology "Service"
+            description ""
+            metadata {
+                labels '
+                    layer: database
+                '
+                annotations '
+                '
+            }
+        }
+    }
+    labelgroup layer_backend {
+        service service_backend 'backend' {
+            technology "Service"
+            description ""
+            metadata {
+                labels '
+                    layer: backend
+                '
+                annotations '
+                '
+            }
+        }
+        deployment deployment_backend 'backend' {
+            technology "Deployment"
+            description ""
+            metadata {
+                labels '
+                    layer: backend
+                '
+                annotations '
+                '
+            }
+        }
+        configmap configmap_app-config 'app-config' {
+            technology "ConfigMap"
+            description ""
+            metadata {
+                labels '
+                    layer: backend
+                '
+                annotations '
+                '
+            }
+        }
+    }
+    labelgroup layer_frontend {
+        deployment deployment_frontend 'frontend' {
+            technology "Deployment"
+            description ""
+            metadata {
+                labels '
+                    layer: frontend
+                '
+                annotations '
+                '
+            }
+        }
+        service service_frontend-service 'frontend-service' {
+            technology "Service"
+            description ""
+            metadata {
+                labels '
+                    layer: frontend
+                '
+                annotations '
+                '
+            }
+        }
+    }
+    pod pod_spurious-pod 'spurious-pod' {
+        technology "Pod"
+        description ""
+        metadata {
+            labels '
+            '
+            annotations '
+            '
+        }
+    }
+    frontend-service -> frontend
+    backend-service -> backend
+    database-service -> database
+}

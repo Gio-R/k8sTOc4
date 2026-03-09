@@ -1,0 +1,12 @@
+namespace test {
+    pod pod_simple-component 'simple-component' {
+        technology "Pod"
+        description ""
+        metadata {
+            labels '
+            '
+            annotations '
+            '
+        }
+    }
+}
