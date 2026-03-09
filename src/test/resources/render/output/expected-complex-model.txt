@@ -1,16 +1,29 @@
 model {
-  // Cluster-scoped resources
-  namespace namespace_demo-app 'demo-app' {
-    technology "Namespace"
-    description ""
-  }
-  persistentvolume persistentvolume_demo-pv 'demo-pv' {
-    technology "PersistentVolume"
-    description ""
-  }
-  // Cross-scope relationships
-  // Total model relationships: 1
-  persistentvolume_demo-pv -> demo-app.persistentvolumeclaim_postgres-pvc
+    // Cluster-scoped resources
+    namespace namespace_demo-app 'demo-app' {
+        technology "Namespace"
+        description ""
+        metadata {
+            labels '
+                app.kubernetes.io/name: demo-app
+            '
+            annotations '
+            '
+        }
+    }
+    persistentvolume persistentvolume_demo-pv 'demo-pv' {
+        technology "PersistentVolume"
+        description ""
+        metadata {
+            labels '
+            '
+            annotations '
+            '
+        }
+    }
+    // Cross-scope relationships
+    // Total model relationships: 1
+    persistentvolume_demo-pv -> demo-app.persistentvolumeclaim_postgres-pvc
     namespace demo-app {
         serviceaccount serviceaccount_demo-app-sa 'demo-app-sa' {
             technology "ServiceAccount"
