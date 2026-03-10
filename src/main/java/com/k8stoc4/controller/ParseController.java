@@ -7,9 +7,11 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 
+import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,8 +30,8 @@ public class ParseController {
     public C4DslRenderer.Output execute() {
         try (KubernetesClient client = new KubernetesClientBuilder().build();
              FileInputStream fis = new FileInputStream(input)) {
-
-            List<HasMetadata> resources = client.load(fis).items();
+            String s = new String(fis.readAllBytes());
+            List<HasMetadata> resources = client.load(new ByteArrayInputStream(s.getBytes(StandardCharsets.UTF_8))).items();
             C4ModelBuilderVisitor visitor = new C4ModelBuilderVisitor(defaultNamespace);
             for (HasMetadata r : resources) {
                 VisitorUtils.accept(r, visitor);
