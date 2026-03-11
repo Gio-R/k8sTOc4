@@ -47,14 +47,14 @@ public class C4ModelBuilderVisitor implements KubernetesResourceVisitor {
 
     private void addServiceToServiceRelationships() {
 
-        model.getNamespaces().forEach((ns, namespace) -> {
+        model.getNamespaces().values().forEach(namespace -> {
         Map<String, C4Component> servicesByFqdn =
-                model.getComponentsByKind(ns, "service").stream()
+                model.getComponentsByKind(namespace.getName(), "service").stream()
                         .collect(Collectors.toMap(
                                 s -> s.getName() + "." + s.getNamespace(),
                                 Function.identity()
                         ));
-        model.getComponentsByKind(ns, "deployment").forEach(component -> {
+        model.getComponentsByKind(namespace.getName(), "deployment").forEach(component -> {
 
             Deployment deployment = (Deployment) component.getResource();
             deployment.getSpec()
@@ -97,8 +97,7 @@ public class C4ModelBuilderVisitor implements KubernetesResourceVisitor {
     }
 
     public void addServiceRelationships() {
-        for (String ns : model.getNamespaces().keySet()) {
-            C4Namespace namespace = model.getNamespaces().get(ns);
+        for (C4Namespace namespace : model.getNamespaces().values()) {
             for (C4Component component : namespace.getComponents()) {
                 if (component.getKind().equalsIgnoreCase("service")) {
                     Map<String, String> selector = ((Service)component.getResource()).getSpec().getSelector();
@@ -147,8 +146,7 @@ public class C4ModelBuilderVisitor implements KubernetesResourceVisitor {
     }
 
     private void addHPARelationships() {
-        for (String ns : model.getNamespaces().keySet()) {
-            C4Namespace namespace = model.getNamespaces().get(ns);
+        for (C4Namespace namespace : model.getNamespaces().values()) {
             for (C4Component component : namespace.getComponents()) {
                 if (component.getResource() instanceof HorizontalPodAutoscaler hpa) {
                     String scaleTargetName = hpa.getSpec().getScaleTargetRef().getName();
@@ -172,8 +170,7 @@ public class C4ModelBuilderVisitor implements KubernetesResourceVisitor {
     }
 
     private void addPDBRelationships() {
-        for (String ns : model.getNamespaces().keySet()) {
-            C4Namespace namespace = model.getNamespaces().get(ns);
+        for (C4Namespace namespace : model.getNamespaces().values()) {
             for (C4Component component : namespace.getComponents()) {
                 if (component.getResource() instanceof PodDisruptionBudget pdb) {
                     Map<String, String> selector = pdb.getSpec().getSelector() != null 
@@ -199,8 +196,7 @@ public class C4ModelBuilderVisitor implements KubernetesResourceVisitor {
     }
 
     private void addServiceAccountRelationships() {
-        for (String ns : model.getNamespaces().keySet()) {
-            C4Namespace namespace = model.getNamespaces().get(ns);
+        for (C4Namespace namespace : model.getNamespaces().values()) {
             for (C4Component component : namespace.getComponents()) {
                 if (component.getResource() instanceof ServiceAccount sa) {
                     String saName = sa.getMetadata().getName();
@@ -247,8 +243,7 @@ public class C4ModelBuilderVisitor implements KubernetesResourceVisitor {
     }
 
     private void addNetworkPolicyRelationships() {
-        for (String ns : model.getNamespaces().keySet()) {
-            C4Namespace namespace = model.getNamespaces().get(ns);
+        for (C4Namespace namespace : model.getNamespaces().values()) {
             for (C4Component component : namespace.getComponents()) {
                 if (component.getResource() instanceof NetworkPolicy np) {
                     String source = component.getNamespace() + "." + component.getId();
@@ -280,8 +275,7 @@ public class C4ModelBuilderVisitor implements KubernetesResourceVisitor {
                     String claimName = pv.getSpec().getClaimRef().getName();
                     String claimNamespace = pv.getSpec().getClaimRef().getNamespace();
 
-                    for (String ns : model.getNamespaces().keySet()) {
-                        C4Namespace namespace = model.getNamespaces().get(ns);
+                    for (C4Namespace namespace : model.getNamespaces().values()) {
                         if (namespace.getName().equals(claimNamespace)) {
                             for (C4Component targetComp : namespace.getComponents()) {
                                 if (targetComp.getKind().equalsIgnoreCase("PersistentVolumeClaim") &&
@@ -301,8 +295,7 @@ public class C4ModelBuilderVisitor implements KubernetesResourceVisitor {
             }
         }
 
-        for (String ns : model.getNamespaces().keySet()) {
-            C4Namespace namespace = model.getNamespaces().get(ns);
+        for (C4Namespace namespace : model.getNamespaces().values()) {
             for (C4Component pvcComponent : namespace.getComponents()) {
                 if (pvcComponent.getResource() instanceof io.fabric8.kubernetes.api.model.PersistentVolumeClaim pvc) {
                     String volumeName = pvc.getSpec().getVolumeName();
@@ -356,8 +349,7 @@ public class C4ModelBuilderVisitor implements KubernetesResourceVisitor {
     }
 
     private void addRBACRelationships() {
-        for (String ns : model.getNamespaces().keySet()) {
-            C4Namespace namespace = model.getNamespaces().get(ns);
+        for (C4Namespace namespace : model.getNamespaces().values()) {
             for (C4Component component : namespace.getComponents()) {
                 String source = component.getNamespace() + "." + component.getId();
                 
