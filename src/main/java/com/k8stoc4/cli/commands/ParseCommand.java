@@ -1,13 +1,12 @@
 package com.k8stoc4.cli.commands;
 
 import com.k8stoc4.controller.ParseController;
+import com.k8stoc4.controller.RenderOutputWriter;
+import com.k8stoc4.controller.writer.FileWriter;
+import com.k8stoc4.controller.writer.SystemOutWriter;
 import com.k8stoc4.render.C4DslRenderer;
 import picocli.CommandLine;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.Optional;
 
 @CommandLine.Command(
@@ -47,23 +46,7 @@ public class ParseCommand implements Runnable {
     @Override
     public void run() {
         final C4DslRenderer.Output renderOutput = new ParseController(input, defaultNs, groupByLabel).execute();
-        if (output.isPresent()) {
-            try {
-                Paths.get(output.get()).toFile().mkdirs();
-                Files.writeString(Paths.get(output.get(), "spec.c4"),
-                        renderOutput.getSpec(), StandardOpenOption.CREATE,
-                        StandardOpenOption.TRUNCATE_EXISTING);
-                Files.writeString(Paths.get(output.get(), "model.c4"),
-                        renderOutput.getModel(), StandardOpenOption.CREATE,
-                        StandardOpenOption.TRUNCATE_EXISTING);
-            } catch (IOException e) {
-                throw new RuntimeException("Failed to write output files", e);
-            } catch (SecurityException e) {
-                throw new RuntimeException("Failed to create output directory", e);
-            }
-        } else {
-            System.out.println(renderOutput.getSpec());
-            System.out.println(renderOutput.getModel());
-        }
+        final RenderOutputWriter writer = output.isPresent() ? new FileWriter(output.get()) : new SystemOutWriter();
+        writer.write(renderOutput);
     }
 }
