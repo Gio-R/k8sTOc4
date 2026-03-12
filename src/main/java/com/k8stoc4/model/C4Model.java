@@ -8,13 +8,12 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Getter
-@Setter
 @ToString
 public  class C4Model {
     private final Map<String, C4Namespace> namespaces = new LinkedHashMap<>();
-    private Set<C4Component> clusterScopedComponents = new LinkedHashSet<>();
-    private Set<String> specifications = new LinkedHashSet<>();
-    private Set<C4Relationship> relationships = new LinkedHashSet<>();
+    private final Set<C4Component> clusterScopedComponents = new LinkedHashSet<>();
+    private final Set<String> specifications = new LinkedHashSet<>();
+    private final Set<C4Relationship> relationships = new LinkedHashSet<>();
 
     public C4Model(){
         specifications.add("namespace");
