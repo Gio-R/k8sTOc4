@@ -29,10 +29,31 @@ public class DiscoverCommand implements Runnable {
     )
     private Optional<String> groupByLabel;
 
+    @CommandLine.Option(
+            names = {"-r", "--refresh-interval"},
+            description = "the number of seconds between reruns. If none, the discovery is performed only once.",
+            required = false
+    )
+    private Optional<Integer> refreshInterval;
+
     @Override
     public void run() {
-        final C4DslRenderer.Output renderOutput = new DiscoverController(groupByLabel).execute();
+        final DiscoverController controller = new DiscoverController(groupByLabel);
         final RenderOutputWriter writer = output.isPresent() ? new FileWriter(output.get()) : new SystemOutWriter();
-        writer.write(renderOutput);
+
+        if (refreshInterval.isPresent()) {
+            while(true) {
+                try {
+                    final C4DslRenderer.Output renderOutput = controller.execute();
+                    writer.write(renderOutput);
+                    Thread.sleep(refreshInterval.get() * 1000);
+                } catch (InterruptedException e) {
+                    System.err.println("Sleep interrupted: " + e.getMessage());
+                }
+            }
+        } else {
+            final C4DslRenderer.Output renderOutput = controller.execute();
+            writer.write(renderOutput);
+        }
     }
 }
