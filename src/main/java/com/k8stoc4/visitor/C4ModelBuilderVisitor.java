@@ -586,25 +586,25 @@ public class C4ModelBuilderVisitor implements KubernetesResourceVisitor {
     }
 
     private void processPodSpec(C4Namespace namespace, C4Component component, PodSpec podSpec, Map<String, String> labels) {
+        component.getResource().getMetadata().getLabels().putAll(labels);
         if (podSpec != null && podSpec.getContainers() != null) {
-            Container c = podSpec.getContainers().get(0);
-            component.setImage(Optional.of(c.getImage()));
-            component.getResource().getMetadata().getLabels().putAll(labels);
-
-            if (c.getEnvFrom() != null) {
-                for (EnvFromSource envFrom : c.getEnvFrom()) {
-                    addValueFromRelationship(namespace, component, envFrom);
-                }
-            }
-            if (c.getEnv() != null) {
-                for (EnvVar e : c.getEnv()) {
-                    if (e.getValueFrom() != null) {
-                        addValueFromKeyRelationship(namespace, component, e.getValueFrom());
-                    } else {
-                        component.getEnv().put(e.getName(), e.getValue());
+            podSpec.getContainers().forEach(c -> {
+                component.getContainerImages().put(c.getName(), c.getImage());
+                if (c.getEnvFrom() != null) {
+                    for (EnvFromSource envFrom : c.getEnvFrom()) {
+                        addValueFromRelationship(namespace, component, envFrom);
                     }
                 }
-            }
+                if (c.getEnv() != null) {
+                    for (EnvVar e : c.getEnv()) {
+                        if (e.getValueFrom() != null) {
+                            addValueFromKeyRelationship(namespace, component, e.getValueFrom());
+                        } else {
+                            component.getEnv().put(e.getName(), e.getValue());
+                        }
+                    }
+                }
+            });
         }
 
         if (podSpec != null && podSpec.getVolumes() != null) {

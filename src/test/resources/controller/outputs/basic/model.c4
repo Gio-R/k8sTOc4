@@ -4,7 +4,9 @@ model {
             technology "Deployment"
             description ""
             metadata {
-                image 'nginx:1.25'
+                containerImages '
+                    sample-app: nginx:1.25
+                '
                 labels '
                     app: sample-app
                 '

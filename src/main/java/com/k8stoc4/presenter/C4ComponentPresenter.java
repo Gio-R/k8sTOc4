@@ -11,7 +11,12 @@ public class C4ComponentPresenter {
         sb.append("    ").append("technology \"").append(component.getKind()).append("\"\n");
         sb.append("    ").append("description \"").append(component.getDescription()).append("\"\n");
         sb.append("    ").append("metadata {\n");
-        component.getImage().ifPresent(it -> sb.append("        image '").append(it).append("'\n"));
+        if (!component.getContainerImages().isEmpty()) {
+            sb.append("        containerImages '\n");
+            component.getContainerImages()
+                    .forEach((name, image) -> sb.append("            ").append(name).append(": ").append(image).append("\n"));
+            sb.append("        '\n");
+        }
         sb.append("        labels '\n");
         for (Map.Entry<String, String> label : component.getResource().getMetadata().getLabels().entrySet()) {
             sb.append("            ").append(label.getKey()).append(": ").append(label.getValue()).append("\n");

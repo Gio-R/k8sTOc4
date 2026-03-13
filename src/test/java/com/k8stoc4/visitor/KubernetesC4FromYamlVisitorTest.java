@@ -1,23 +1,27 @@
 package com.k8stoc4.visitor;
 
-import com.k8stoc4.model.*;
+import com.k8stoc4.model.C4Component;
+import com.k8stoc4.model.C4Model;
+import com.k8stoc4.model.C4Namespace;
+import com.k8stoc4.model.Constants;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import org.junit.jupiter.api.Test;
 
-import java.io.FileInputStream;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class KubernetesC4FromYamlVisitorTest {
+    final ClassLoader classloader = Thread.currentThread().getContextClassLoader();
 
     @Test
     void testComplexYamlParsing() throws Exception {
         try (KubernetesClient client = new KubernetesClientBuilder().build();
-             FileInputStream fis = new FileInputStream("src/main/resources/complex.yaml")) {
+             InputStream fis = classloader.getResourceAsStream("render/input/complex.yaml")) {
 
             List<HasMetadata> resources = client.load(fis).items();
             C4ModelBuilderVisitor visitor = new C4ModelBuilderVisitor.Builder().build();
@@ -78,7 +82,7 @@ class KubernetesC4FromYamlVisitorTest {
         assertEquals("postgres", postgresDeployment.getName());
         assertEquals("StatefulSet", postgresDeployment.getKind());
         assertEquals("demo-app", postgresDeployment.getNamespace());
-        assertEquals("postgres:14", postgresDeployment.getImage().orElseThrow());
+        assertEquals(Map.of("postgres", "postgres:14"), postgresDeployment.getContainerImages());
         assertEquals(Map.of("app", "postgres"), postgresDeployment.getResource().getMetadata().getLabels());
 
         C4Component postgresService = components.get("service_postgres");
@@ -90,7 +94,7 @@ class KubernetesC4FromYamlVisitorTest {
         assertNotNull(redisDeployment, "Redis deployment should exist");
         assertEquals("redis", redisDeployment.getName());
         assertEquals("Deployment", redisDeployment.getKind());
-        assertEquals("redis:7", redisDeployment.getImage().orElseThrow());
+        assertEquals(Map.of("redis", "redis:7"), redisDeployment.getContainerImages());
         assertEquals(Map.of("app", "redis"), redisDeployment.getResource().getMetadata().getLabels());
 
         C4Component redisService = components.get("service_redis");
@@ -101,24 +105,24 @@ class KubernetesC4FromYamlVisitorTest {
         C4Component messageBrokerDeployment = components.get("deployment_message-broker");
         assertNotNull(messageBrokerDeployment, "Message broker deployment should exist");
         assertEquals("message-broker", messageBrokerDeployment.getName());
-        assertEquals("rabbitmq:3-management", messageBrokerDeployment.getImage().orElseThrow());
+        assertEquals(Map.of("rabbitmq","rabbitmq:3-management"), messageBrokerDeployment.getContainerImages());
         assertEquals(Map.of("app", "rabbitmq"), messageBrokerDeployment.getResource().getMetadata().getLabels());
 
         C4Component backendDeployment = components.get("deployment_backend");
         assertNotNull(backendDeployment, "Backend deployment should exist");
         assertEquals("backend", backendDeployment.getName());
-        assertEquals("yourorg/backend:1.0", backendDeployment.getImage().orElseThrow());
+        assertEquals(Map.of("backend", "yourorg/backend:1.0"), backendDeployment.getContainerImages());
         assertEquals(Map.of("app", "backend"), backendDeployment.getResource().getMetadata().getLabels());
 
         C4Component authDeployment = components.get("deployment_auth");
         assertNotNull(authDeployment, "Auth deployment should exist");
         assertEquals("auth", authDeployment.getName());
-        assertEquals("yourorg/auth:1.0", authDeployment.getImage().orElseThrow());
+        assertEquals(Map.of("auth", "yourorg/auth:1.0"), authDeployment.getContainerImages());
 
         C4Component frontendDeployment = components.get("deployment_frontend");
         assertNotNull(frontendDeployment, "Frontend deployment should exist");
         assertEquals("frontend", frontendDeployment.getName());
-        assertEquals("nginx:stable", frontendDeployment.getImage().orElseThrow());
+        assertEquals(Map.of("frontend", "nginx:stable"), frontendDeployment.getContainerImages());
 
         C4Component configMap = components.get("configmap_frontend-config");
         assertNotNull(configMap, "Frontend configmap should exist");

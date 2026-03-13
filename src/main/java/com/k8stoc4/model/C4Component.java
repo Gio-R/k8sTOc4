@@ -21,11 +21,11 @@ public class C4Component {
     private String namespace;
     private String name;
     private String id;
-    private Optional<String> image;
     private String kind;
     private String description = "";
     private Map<String, String> env = new LinkedHashMap<>();
     private HasMetadata resource;
+    private final Map<String, String> containerImages = new LinkedHashMap<>();
     
     public C4Component(HasMetadata resource, String namespace, String name, String kind) {
         this.namespace = namespace != null ? namespace : Constants.DEFAULT_NAMESPACE;
@@ -33,6 +33,5 @@ public class C4Component {
         this.id = kind.toLowerCase() + "_" + PresenterUtils.sanitizeComponentId(name);
         this.name = name;
         this.kind = kind;
-        this.image = Optional.empty();
     }
 }
