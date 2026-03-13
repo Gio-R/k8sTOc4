@@ -17,16 +17,18 @@ public class C4ComponentPresenter {
                     .forEach((name, image) -> sb.append("            ").append(name).append(": ").append(image).append("\n"));
             sb.append("        '\n");
         }
-        sb.append("        labels '\n");
-        for (Map.Entry<String, String> label : component.getResource().getMetadata().getLabels().entrySet()) {
-            sb.append("            ").append(label.getKey()).append(": ").append(label.getValue()).append("\n");
+        if (component.getResource() != null) {
+            sb.append("        labels '\n");
+            for (Map.Entry<String, String> label : component.getResource().getMetadata().getLabels().entrySet()) {
+                sb.append("            ").append(label.getKey()).append(": ").append(label.getValue()).append("\n");
+            }
+            sb.append("        '\n");
+            sb.append("        annotations '\n");
+            for (Map.Entry<String, String> annotation : component.getResource().getMetadata().getAnnotations().entrySet()) {
+                sb.append("            ").append(annotation.getKey()).append(": ").append(annotation.getValue()).append("\n");
+            }
+            sb.append("        '\n");
         }
-        sb.append("        '\n");
-        sb.append("        annotations '\n");
-        for (Map.Entry<String, String> annotation : component.getResource().getMetadata().getAnnotations().entrySet()) {
-            sb.append("            ").append(annotation.getKey()).append(": ").append(annotation.getValue()).append("\n");
-        }
-        sb.append("        '\n");
         sb.append("    }\n");
         sb.append("}\n");
         return sb.toString();
