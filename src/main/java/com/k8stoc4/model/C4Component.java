@@ -14,19 +14,19 @@ import java.util.Optional;
 
 @EqualsAndHashCode
 @Getter
-@Setter
 @ToString
 public class C4Component {
-
-    private String namespace;
-    private String name;
-    private String id;
-    private String kind;
-    private String description = "";
-    private Map<String, String> env = new LinkedHashMap<>();
-    private HasMetadata resource;
+    private final String name;
+    private final String id;
+    private final String kind;
+    private final HasMetadata resource;
     private final Map<String, String> containerImages = new LinkedHashMap<>();
-    
+    private final Map<String, String> env = new LinkedHashMap<>();
+    @Setter
+    private String description = "";
+    @Setter
+    private String namespace;
+
     public C4Component(HasMetadata resource, String namespace, String name, String kind) {
         this.namespace = namespace != null ? namespace : Constants.DEFAULT_NAMESPACE;
         this.resource = resource;
