@@ -1,11 +1,6 @@
 package com.k8stoc4.visitor;
 
-import com.k8stoc4.model.C4Component;
-import com.k8stoc4.model.C4LabelGroup;
-import com.k8stoc4.model.C4Model;
-import com.k8stoc4.model.C4Namespace;
-import com.k8stoc4.model.C4Relationship;
-import com.k8stoc4.model.Constants;
+import com.k8stoc4.model.*;
 import com.k8stoc4.presenter.PresenterUtils;
 import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
@@ -16,15 +11,9 @@ import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import io.fabric8.kubernetes.api.model.networking.v1.NetworkPolicy;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -33,7 +22,6 @@ import java.util.stream.Stream;
 import static com.k8stoc4.visitor.VisitorUtils.containerMatchesSelector;
 
 @Slf4j
-@Getter
 public class C4ModelBuilderVisitor implements KubernetesResourceVisitor {
 
     private final C4Model model = new C4Model();
@@ -54,6 +42,10 @@ public class C4ModelBuilderVisitor implements KubernetesResourceVisitor {
         public C4ModelBuilderVisitor build() {
             return new C4ModelBuilderVisitor(defaultNamespace);
         }
+    }
+
+    public C4Model getModel() {
+        return this.model;
     }
 
     public void addAllRelationships() {
