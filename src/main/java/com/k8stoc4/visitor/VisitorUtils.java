@@ -28,10 +28,10 @@ public class VisitorUtils {
         if (selector == null || selector.isEmpty()) return false;
 
         Map<String, String> podLabels=null;
-        if(component.getResource() instanceof Deployment){
-            podLabels = ((Deployment)component.getResource()).getSpec().getTemplate().getMetadata().getLabels();
-        }else if (component.getResource() instanceof StatefulSet){
-            podLabels = ((StatefulSet)component.getResource()).getSpec().getTemplate().getMetadata().getLabels();
+        if(component.getResource() instanceof Deployment d){
+            podLabels = d.getSpec().getTemplate().getMetadata().getLabels();
+        }else if (component.getResource() instanceof StatefulSet s){
+            podLabels = s.getSpec().getTemplate().getMetadata().getLabels();
         }
 
         if (podLabels == null || podLabels.isEmpty()) return false;
