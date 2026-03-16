@@ -25,10 +25,10 @@ import static com.k8stoc4.visitor.VisitorUtils.containerMatchesSelector;
 public class C4ModelBuilderVisitor implements KubernetesResourceVisitor {
 
     private final C4Model model = new C4Model();
-    private String defaultNS = Constants.DEFAULT_NAMESPACE;
+    private final String defaultNS;
 
-    private C4ModelBuilderVisitor(Optional<String> defaultNs) {
-        defaultNs.ifPresent(s -> this.defaultNS = s);
+    private C4ModelBuilderVisitor(final Optional<String> defaultNs) {
+        this.defaultNS = defaultNs.orElse(Constants.DEFAULT_NAMESPACE);
     }
 
     public static class Builder {
