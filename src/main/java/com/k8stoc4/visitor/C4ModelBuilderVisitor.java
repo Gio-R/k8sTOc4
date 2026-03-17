@@ -8,6 +8,7 @@ import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.autoscaling.v2.HorizontalPodAutoscaler;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
+import io.fabric8.kubernetes.api.model.networking.v1.IngressRule;
 import io.fabric8.kubernetes.api.model.networking.v1.NetworkPolicy;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
@@ -201,7 +202,7 @@ public final class C4ModelBuilderVisitor implements KubernetesResourceVisitor {
                 .distinct()
                 .collect(Collectors.toList())
         );
-        ingress.setDescription(ing.getSpec().getRules().get(0).getHost());
+        ingress.getAdditionalMetadata().put("hosts", ing.getSpec().getRules().stream().map(IngressRule::getHost).filter(Objects::nonNull).collect(Collectors.joining("\n")));
     }
 
     @Override
@@ -223,7 +224,7 @@ public final class C4ModelBuilderVisitor implements KubernetesResourceVisitor {
                 .distinct()
                 .collect(Collectors.toList())
         );
-        ingress.setDescription(ing.getSpec().getRules().get(0).getHost());
+        ingress.getAdditionalMetadata().put("hosts", ing.getSpec().getRules().stream().map(io.fabric8.kubernetes.api.model.networking.v1beta1.IngressRule::getHost).filter(Objects::nonNull).collect(Collectors.joining("\n")));
     }
 
     @Override
@@ -245,7 +246,7 @@ public final class C4ModelBuilderVisitor implements KubernetesResourceVisitor {
                 .distinct()
                 .collect(Collectors.toList())
         );
-        ingress.setDescription(ing.getSpec().getRules().get(0).getHost());
+        ingress.getAdditionalMetadata().put("hosts", ing.getSpec().getRules().stream().map(io.fabric8.kubernetes.api.model.extensions.IngressRule::getHost).filter(Objects::nonNull).collect(Collectors.joining("\n")));
     }
 
     @Override

@@ -37,7 +37,7 @@ public final class C4ComponentPresenter {
         }
         component.getAdditionalMetadata().forEach((key, value) -> {
             sb.append(Constants.INDENT.repeat(2)).append(key).append(" '\n");
-            sb.append(Constants.INDENT.repeat(3)).append(value).append('\n');
+            value.lines().forEach(line -> sb.append(Constants.INDENT.repeat(3)).append(line).append('\n'));
             sb.append(Constants.INDENT.repeat(2)).append("'\n");
         });
         sb.append(Constants.INDENT.repeat(1)).append("}\n");

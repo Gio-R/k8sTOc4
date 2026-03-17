@@ -43,6 +43,9 @@ model {
                 annotations '
                     nginx.ingress.kubernetes.io/rewrite-target: /
                 '
+                hosts '
+                    sample.example.com
+                '
             }
         }
         default.deployment_sample-app -> default.configmap_sample-config {

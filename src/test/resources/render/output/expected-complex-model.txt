@@ -247,6 +247,9 @@ model {
                 annotations '
                     nginx.ingress.kubernetes.io/rewrite-target: /
                 '
+                hosts '
+                    demo.example.com
+                '
             }
         }
         horizontalpodautoscaler horizontalpodautoscaler_backend-hpa 'backend-hpa' {
