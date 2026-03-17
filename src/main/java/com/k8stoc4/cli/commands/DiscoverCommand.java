@@ -8,6 +8,7 @@ import com.k8stoc4.controller.writer.SystemOutWriter;
 import com.k8stoc4.render.C4DslRenderer;
 import picocli.CommandLine;
 
+import java.time.Duration;
 import java.util.Optional;
 
 @CommandLine.Command(
@@ -57,7 +58,7 @@ public class DiscoverCommand implements Runnable {
                 try {
                     final C4DslRenderer.Output renderOutput = controller.execute();
                     writer.write(renderOutput);
-                    Thread.sleep(refreshInterval.get() * 1000);
+                    Thread.sleep(Duration.ofSeconds(refreshInterval.get()).toMillis());
                 } catch (InterruptedException e) {
                     System.err.println("Sleep interrupted: " + e.getMessage());
                 }
