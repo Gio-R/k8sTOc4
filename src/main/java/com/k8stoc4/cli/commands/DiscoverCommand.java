@@ -1,6 +1,6 @@
 package com.k8stoc4.cli.commands;
 
-import com.k8stoc4.KubernetesClient;
+import com.k8stoc4.common.KubernetesClient;
 import com.k8stoc4.controller.K8sToC4Controller;
 import com.k8stoc4.controller.RenderOutputWriter;
 import com.k8stoc4.controller.provider.KubeApiServerInputProvider;

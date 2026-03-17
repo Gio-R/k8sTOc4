@@ -1,6 +1,6 @@
 package com.k8stoc4.presenter;
 
-import com.k8stoc4.KubernetesClient;
+import com.k8stoc4.common.KubernetesClient;
 import com.k8stoc4.model.C4Component;
 import com.k8stoc4.model.C4LabelGroup;
 import io.fabric8.kubernetes.api.model.HasMetadata;

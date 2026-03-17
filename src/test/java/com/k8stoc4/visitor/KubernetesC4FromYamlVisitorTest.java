@@ -1,6 +1,6 @@
 package com.k8stoc4.visitor;
 
-import com.k8stoc4.KubernetesClient;
+import com.k8stoc4.common.KubernetesClient;
 import com.k8stoc4.model.C4Component;
 import com.k8stoc4.model.C4Model;
 import com.k8stoc4.model.C4Namespace;

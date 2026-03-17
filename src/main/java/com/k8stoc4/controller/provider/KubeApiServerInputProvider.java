@@ -1,6 +1,6 @@
 package com.k8stoc4.controller.provider;
 
-import com.k8stoc4.KubernetesClient;
+import com.k8stoc4.common.KubernetesClient;
 import com.k8stoc4.controller.ResourceProvider;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 
