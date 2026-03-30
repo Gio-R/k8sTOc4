@@ -81,7 +81,13 @@ public class C4DslRenderer {
     private String renderViews(final C4Model model) {
         final Set<C4Component> nodes = model.getClusterScopedComponentsByKind("Node");
         final StringBuilder sb = new StringBuilder();
+        sb.append("global {\n");
+        sb.append(Constants.INDENT.repeat(1)).append("style external_service element.tag = #" + Constants.EXTERNAL_SERVICE + " {\n");
+        sb.append(Constants.INDENT.repeat(2)).append("color indigo\n");
+        sb.append(Constants.INDENT.repeat(1)).append("}\n");
+        sb.append("}\n");
         sb.append("views {\n");
+        sb.append(Constants.INDENT.repeat(1)).append("global style external_service\n");
         sb.append(Constants.INDENT.repeat(1)).append("view namespaces {\n");
         sb.append(Constants.INDENT.repeat(2)).append("title 'Overviews / Namespaces'\n");
         sb.append(Constants.INDENT.repeat(2)).append("include *\n");
