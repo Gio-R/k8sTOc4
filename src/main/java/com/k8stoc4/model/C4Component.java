@@ -7,8 +7,10 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
 @EqualsAndHashCode
 @Getter
@@ -25,6 +27,8 @@ public class C4Component {
     private String description = "";
     @Setter
     private String namespace;
+    @Getter
+    private Set<String> tags=new HashSet<>();
 
     public C4Component(final HasMetadata resource, final String namespace, final String name, final String kind) {
         this.namespace = namespace != null ? namespace : Constants.DEFAULT_NAMESPACE;

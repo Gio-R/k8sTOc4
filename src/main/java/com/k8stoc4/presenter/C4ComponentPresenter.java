@@ -4,12 +4,16 @@ import com.k8stoc4.model.C4Component;
 import com.k8stoc4.model.Constants;
 
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public final class C4ComponentPresenter {
     private C4ComponentPresenter() {}
     public static String present(C4Component component) {
         final StringBuilder sb = new StringBuilder();
         sb.append(component.getKind().toLowerCase()).append(' ').append(PresenterUtils.sanitizeComponentId(component.getId())).append(" '").append(component.getName()).append("' {\n");
+        if(!component.getTags().isEmpty()){
+            sb.append(Constants.INDENT.repeat(1)).append(component.getTags().stream().map(s -> "#"+s).collect(Collectors.joining(" "))).append("\n");
+        }
         sb.append(Constants.INDENT.repeat(1)).append("technology \"").append(component.getKind()).append("\"\n");
         sb.append(Constants.INDENT.repeat(1)).append("description \"").append(component.getDescription()).append("\"\n");
         sb.append(Constants.INDENT.repeat(1)).append("metadata {\n");

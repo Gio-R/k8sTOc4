@@ -30,6 +30,7 @@ public final class Constants {
     public static final String K8S_TECHNOLOGY = "k8s";
     public static final String SERVICE2SERVICE_TAG = "service2service";
     public static final String MISSING_TYPE = "missing";
+    public static final String EXTERNAL_SERVICE = "ExternalName";
 
     public static final Set<String> CLUSTER_SCOPED_RESOURCES = Set.of(
         "PersistentVolume",
