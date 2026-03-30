@@ -10,6 +10,7 @@ specification {
             opacity 25%
         }
     }
+    element labelgroup
     element serviceaccount
     element role
     element rolebinding
