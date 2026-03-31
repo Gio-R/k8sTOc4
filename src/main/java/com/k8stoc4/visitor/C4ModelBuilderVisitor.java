@@ -331,7 +331,8 @@ public final class C4ModelBuilderVisitor implements KubernetesResourceVisitor {
                 value.startsWith("https://") ||
                 value.startsWith("amqp://") ||
                 value.startsWith("mongodb://") ||
-                value.startsWith("jdbc:");
+                value.startsWith("jdbc:") ||
+                value.matches("[a-zA-Z0-9-]+\\.[a-zA-Z0-9]+\\.svc(.cluster.local)?");
     }
 
     private void addServiceRelationships() {
