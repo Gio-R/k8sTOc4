@@ -184,10 +184,10 @@ public final class C4ModelBuilderVisitor implements KubernetesResourceVisitor {
         final String ns = Optional.ofNullable(svc.getMetadata().getNamespace()).orElse(defaultNS);
         final C4Namespace namespace = getOrCreateSystem(ns);
         final C4Component service = new C4Component(svc, ns, svc.getMetadata().getName(), svc.getKind()) ;
-        if( svc.getSpec().getType()!=null && svc.getSpec().getType().equals(Constants.EXTERNAL_SERVICE  )){
+        if (svc.getSpec().getType()!=null && svc.getSpec().getType().equals(Constants.EXTERNAL_SERVICE)){
             service.getTags().add(Constants.EXTERNAL_SERVICE);
+            service.setDescription(svc.getSpec().getExternalName());
         }
-
         namespace.addComponents(service);
     }
 
