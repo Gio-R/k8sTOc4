@@ -1,11 +1,10 @@
 package com.k8stoc4.render;
 
+import com.k8stoc4.common.KubernetesClient;
 import com.k8stoc4.model.C4Model;
 import com.k8stoc4.visitor.C4ModelBuilderVisitor;
 import com.k8stoc4.visitor.VisitorUtils;
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 
@@ -14,6 +13,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -24,10 +24,8 @@ class C4DslRendererTest {
     @SneakyThrows
     @Test
     void testRender() {
-        final KubernetesClient client = new KubernetesClientBuilder().build();
         final InputStream fis = classloader.getResourceAsStream("render/input/complex.yaml");
-        final List<HasMetadata> resources = client.load(fis).items();
-        client.close();
+        final List<HasMetadata> resources = KubernetesClient.getInstance().getClient().load(fis).items();
         final C4ModelBuilderVisitor visitor = new C4ModelBuilderVisitor.Builder().build();
 
         for (final HasMetadata r : resources) {
@@ -38,7 +36,7 @@ class C4DslRendererTest {
 
         final C4Model model = visitor.getModel();
         final C4DslRenderer renderer = new C4DslRenderer();
-        final C4DslRenderer.Output output = renderer.render(model);
+        final C4DslRenderer.Output output = renderer.render(model, Set.of());
         final String expectedSpec = new BufferedReader(new InputStreamReader(Objects.requireNonNull(classloader.getResourceAsStream("render/output/expected-complex-spec.txt")))).lines().collect(Collectors.joining("\n")) + "\n";
         final String expectedModel = new BufferedReader(new InputStreamReader(Objects.requireNonNull(classloader.getResourceAsStream("render/output/expected-complex-model.txt")))).lines().collect(Collectors.joining("\n")) + "\n";
         assertEquals(expectedSpec, output.getSpec());

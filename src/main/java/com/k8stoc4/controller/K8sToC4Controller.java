@@ -7,6 +7,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public final class K8sToC4Controller {
 
@@ -14,15 +15,17 @@ public final class K8sToC4Controller {
     private final Optional<String> groupByLabel;
     private final ResourceProvider resourceProvider;
     private final boolean rewriteMissing;
+    private final Set<String> kindExclusions;
 
-    public K8sToC4Controller(final ResourceProvider resourceProvider, final Optional<String> defaultNamespace, final Optional<String> groupByLabel, final boolean rewriteMissing) {
+    public K8sToC4Controller(final ResourceProvider resourceProvider, final Optional<String> defaultNamespace, final Optional<String> groupByLabel, final boolean rewriteMissing, final Set<String> kindExclusions) {
         this.defaultNamespace = defaultNamespace;
         this.groupByLabel = groupByLabel;
         this.resourceProvider = resourceProvider;
         this.rewriteMissing = rewriteMissing;
+        this.kindExclusions = kindExclusions;
     }
 
-    public C4DslRenderer.Output execute() {
+    public void execute(final RenderOutputWriter writer) {
         final List<HasMetadata> resources = this.resourceProvider.resources();
         final C4ModelBuilderVisitor.Builder visitorBuilder = new C4ModelBuilderVisitor.Builder();
         if (this.defaultNamespace.isPresent()) {
@@ -38,6 +41,7 @@ public final class K8sToC4Controller {
         }
         groupByLabel.ifPresent(visitor::groupComponentsByLabel);
         final C4DslRenderer renderer = new C4DslRenderer();
-        return renderer.render(visitor.getModel());
+        writer.write(renderer.render(visitor.getModel(), kindExclusions));
+        writer.copyExtraResources();
     }
 }

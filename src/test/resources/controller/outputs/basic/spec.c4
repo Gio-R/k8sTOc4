@@ -7,12 +7,31 @@ specification {
     }
     element namespace {
         style {
+            icon /images/namespace.svg
             opacity 25%
         }
     }
-    element deployment
-    element service
-    element configmap
-    element ingress
+    element labelgroup
+    element deployment{
+        style {
+            icon /images/deployment.svg
+        }
+    }
+    element service{
+        style {
+            icon /images/service.svg
+        }
+    }
+    element configmap{
+        style {
+            icon /images/configmap.svg
+        }
+    }
+    element ingress{
+        style {
+            icon /images/ingress.svg
+        }
+    }
     tag service2service
+    tag ExternalName
 }

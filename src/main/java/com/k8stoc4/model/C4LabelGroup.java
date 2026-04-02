@@ -1,7 +1,7 @@
 package com.k8stoc4.model;
 
+import com.k8stoc4.presenter.PresenterUtils;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.ToString;
 
 import java.util.LinkedHashSet;
@@ -17,7 +17,7 @@ public class C4LabelGroup {
     private final Set<C4Relationship> relationships = new LinkedHashSet<>();
 
     public C4LabelGroup(final String name, final String labelKey, final String labelValue) {
-        this.name = name;
+        this.name = PresenterUtils.sanitizeComponentId(name);
         this.labelKey = labelKey;
         this.labelValue = labelValue;
     }

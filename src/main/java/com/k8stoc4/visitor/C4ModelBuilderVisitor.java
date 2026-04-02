@@ -1,19 +1,41 @@
 package com.k8stoc4.visitor;
 
-import com.k8stoc4.model.*;
+import com.k8stoc4.model.C4Component;
+import com.k8stoc4.model.C4LabelGroup;
+import com.k8stoc4.model.C4Model;
+import com.k8stoc4.model.C4Namespace;
+import com.k8stoc4.model.C4Relationship;
+import com.k8stoc4.model.Constants;
 import com.k8stoc4.presenter.PresenterUtils;
-import io.fabric8.kubernetes.api.model.*;
+import io.fabric8.kubernetes.api.model.EnvFromSource;
+import io.fabric8.kubernetes.api.model.EnvVar;
+import io.fabric8.kubernetes.api.model.EnvVarSource;
+import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.PersistentVolume;
+import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.PodSpec;
+import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.api.model.ServiceAccount;
+import io.fabric8.kubernetes.api.model.Volume;
+import io.fabric8.kubernetes.api.model.VolumeProjection;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.autoscaling.v2.HorizontalPodAutoscaler;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
+import io.fabric8.kubernetes.api.model.networking.v1.IngressRule;
 import io.fabric8.kubernetes.api.model.networking.v1.NetworkPolicy;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -62,14 +84,16 @@ public final class C4ModelBuilderVisitor implements KubernetesResourceVisitor {
 
     public void groupComponentsByLabel(final String labelKey) {
         for (final C4Namespace namespace : model.getNamespaces().values()) {
+            final List<C4Component> componentsToRemove = new ArrayList<>();
             for (final C4Component component : namespace.getComponents()) {
                 final String labelValue = component.getResource().getMetadata().getLabels().get(labelKey);
                 if (labelValue != null && !labelValue.isEmpty()) {
                     final C4LabelGroup group = namespace.getOrCreateLabelGroup(labelKey, labelValue);
                     group.addComponents(component);
-                    namespace.removeComponent(component);
+                    componentsToRemove.add(component);
                 }
             }
+            componentsToRemove.forEach(namespace.getComponents()::remove);
         }
     }
 
@@ -175,10 +199,10 @@ public final class C4ModelBuilderVisitor implements KubernetesResourceVisitor {
         final String ns = Optional.ofNullable(svc.getMetadata().getNamespace()).orElse(defaultNS);
         final C4Namespace namespace = getOrCreateSystem(ns);
         final C4Component service = new C4Component(svc, ns, svc.getMetadata().getName(), svc.getKind()) ;
-        if( svc.getSpec().getType()!=null && svc.getSpec().getType().equals(Constants.EXTERNAL_SERVICE  )){
+        if (svc.getSpec().getType()!=null && svc.getSpec().getType().equals(Constants.EXTERNAL_SERVICE)){
             service.getTags().add(Constants.EXTERNAL_SERVICE);
+            service.setDescription(svc.getSpec().getExternalName());
         }
-
         namespace.addComponents(service);
     }
 
@@ -201,7 +225,7 @@ public final class C4ModelBuilderVisitor implements KubernetesResourceVisitor {
                 .distinct()
                 .collect(Collectors.toList())
         );
-        ingress.setDescription(ing.getSpec().getRules().get(0).getHost());
+        ingress.getAdditionalMetadata().put("hosts", ing.getSpec().getRules().stream().map(IngressRule::getHost).filter(Objects::nonNull).collect(Collectors.joining("\n")));
     }
 
     @Override
@@ -223,7 +247,7 @@ public final class C4ModelBuilderVisitor implements KubernetesResourceVisitor {
                 .distinct()
                 .collect(Collectors.toList())
         );
-        ingress.setDescription(ing.getSpec().getRules().get(0).getHost());
+        ingress.getAdditionalMetadata().put("hosts", ing.getSpec().getRules().stream().map(io.fabric8.kubernetes.api.model.networking.v1beta1.IngressRule::getHost).filter(Objects::nonNull).collect(Collectors.joining("\n")));
     }
 
     @Override
@@ -245,7 +269,7 @@ public final class C4ModelBuilderVisitor implements KubernetesResourceVisitor {
                 .distinct()
                 .collect(Collectors.toList())
         );
-        ingress.setDescription(ing.getSpec().getRules().get(0).getHost());
+        ingress.getAdditionalMetadata().put("hosts", ing.getSpec().getRules().stream().map(io.fabric8.kubernetes.api.model.extensions.IngressRule::getHost).filter(Objects::nonNull).collect(Collectors.joining("\n")));
     }
 
     @Override
@@ -293,7 +317,7 @@ public final class C4ModelBuilderVisitor implements KubernetesResourceVisitor {
                         }
                         container.getEnv().stream()
                             .map(EnvVar::getValue)
-                            .filter(this::isHttpUrl)
+                            .filter(this::isServiceRef)
                             .forEach(value ->
                                 servicesByFqdn.forEach((fqdn, service) -> {
                                     if (value.contains(fqdn)) {
@@ -314,9 +338,16 @@ public final class C4ModelBuilderVisitor implements KubernetesResourceVisitor {
         });
     }
 
-    private boolean isHttpUrl(final String value) {
-        return value != null &&
-                (value.startsWith("http://") || value.startsWith("https://"));
+    private boolean isServiceRef(final String value) {
+        if (value == null) {
+            return false;
+        }
+        return value.startsWith("http://") ||
+                value.startsWith("https://") ||
+                value.startsWith("amqp://") ||
+                value.startsWith("mongodb://") ||
+                value.startsWith("jdbc:") ||
+                value.matches("[a-zA-Z0-9-]+\\.[a-zA-Z0-9]+\\.svc(.cluster.local)?");
     }
 
     private void addServiceRelationships() {

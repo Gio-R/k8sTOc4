@@ -7,22 +7,81 @@ specification {
     }
     element namespace {
         style {
+            icon /images/namespace.svg
             opacity 25%
         }
     }
-    element serviceaccount
-    element role
-    element rolebinding
-    element configmap
-    element secret
-    element persistentvolume
-    element persistentvolumeclaim
-    element statefulset
-    element service
-    element deployment
-    element ingress
-    element horizontalpodautoscaler
-    element poddisruptionbudget
-    element daemonset
+    element labelgroup
+    element serviceaccount{
+        style {
+            icon /images/serviceaccount.svg
+        }
+    }
+    element role{
+        style {
+            icon /images/role.svg
+        }
+    }
+    element rolebinding{
+        style {
+            icon /images/rolebinding.svg
+        }
+    }
+    element configmap{
+        style {
+            icon /images/configmap.svg
+        }
+    }
+    element secret{
+        style {
+            icon /images/secret.svg
+        }
+    }
+    element persistentvolume{
+        style {
+            icon /images/persistentvolume.svg
+        }
+    }
+    element persistentvolumeclaim{
+        style {
+            icon /images/persistentvolumeclaim.svg
+        }
+    }
+    element statefulset{
+        style {
+            icon /images/statefulset.svg
+        }
+    }
+    element service{
+        style {
+            icon /images/service.svg
+        }
+    }
+    element deployment{
+        style {
+            icon /images/deployment.svg
+        }
+    }
+    element ingress{
+        style {
+            icon /images/ingress.svg
+        }
+    }
+    element horizontalpodautoscaler{
+        style {
+            icon /images/horizontalpodautoscaler.svg
+        }
+    }
+    element poddisruptionbudget{
+        style {
+            icon /images/poddisruptionbudget.svg
+        }
+    }
+    element daemonset{
+        style {
+            icon /images/daemonset.svg
+        }
+    }
     tag service2service
+    tag ExternalName
 }

@@ -1,11 +1,14 @@
 package com.k8stoc4.cli.commands;
 
+import com.k8stoc4.common.KubernetesClient;
 import com.k8stoc4.controller.K8sToC4Controller;
 import com.k8stoc4.controller.RenderOutputWriter;
 import com.k8stoc4.controller.provider.KubeApiServerInputProvider;
 import com.k8stoc4.controller.writer.FileWriter;
 import com.k8stoc4.controller.writer.SystemOutWriter;
-import com.k8stoc4.render.C4DslRenderer;
+import io.fabric8.kubernetes.api.model.events.v1.Event;
+import io.fabric8.kubernetes.client.Watcher;
+import io.fabric8.kubernetes.client.WatcherException;
 import picocli.CommandLine;
 
 import java.util.Optional;
@@ -14,57 +17,49 @@ import java.util.Optional;
         name = "discover",
         description = "discover the cluster status"
 )
-public class DiscoverCommand implements Runnable {
+public class DiscoverCommand extends CommonCommand implements Runnable {
 
     @CommandLine.Option(
-            names = {"-o", "--output"},
-            description = "output dir",
-            required = false
-    )
-    private Optional<String> output;
-
-    @CommandLine.Option(
-            names = {"-g","--group-by-label"},
-            description = "label key for grouping (e.g. app.kubernetes.io/name, app)",
-            required = false
-    )
-    private Optional<String> groupByLabel;
-
-    @CommandLine.Option(
-            names = {"-r", "--refresh-interval"},
-            description = "the number of seconds between reruns. If none, the discovery is performed only once.",
-            required = false
-    )
-    private Optional<Integer> refreshInterval;
-
-    @CommandLine.Option(
-            names = {"--rewrite-missing"},
-            description = "Whether to create entities for missing referenced objects.",
+            names = {"-w", "--watch"},
+            description = "Whether to watch Kubernetes events or run once.",
             defaultValue = "false",
             required = false
     )
-    private boolean rewriteMissing;
-
-    public DiscoverCommand() {}
+    private boolean watch;
 
     @Override
     public void run() {
-        final K8sToC4Controller controller = new K8sToC4Controller(new KubeApiServerInputProvider(), Optional.empty(), groupByLabel, rewriteMissing);
+        initController(new KubeApiServerInputProvider(), Optional.empty());
         final RenderOutputWriter writer = output.isPresent() ? new FileWriter(output.get()) : new SystemOutWriter();
 
-        if (refreshInterval.isPresent()) {
-            while(true) {
-                try {
-                    final C4DslRenderer.Output renderOutput = controller.execute();
-                    writer.write(renderOutput);
-                    Thread.sleep(refreshInterval.get() * 1000);
-                } catch (InterruptedException e) {
-                    System.err.println("Sleep interrupted: " + e.getMessage());
-                }
+        this.controller.execute(writer);
+        if (this.watch) {
+            final EventWatcher watcher = new EventWatcher(this.controller, writer);
+            while (true) {
+                KubernetesClient.getInstance().getClient().events().v1().events().inAnyNamespace().watch(watcher);
             }
-        } else {
-            final C4DslRenderer.Output renderOutput = controller.execute();
-            writer.write(renderOutput);
+        }
+    }
+
+    private static final class EventWatcher implements Watcher<Event> {
+        private final K8sToC4Controller controller;
+        private final RenderOutputWriter writer;
+
+        public EventWatcher(final K8sToC4Controller controller, final RenderOutputWriter writer) {
+            this.controller = controller;
+            this.writer = writer;
+        }
+
+        @Override
+        public void eventReceived(Action action, Event resource) {
+            if (action == Action.ADDED || action == Action.MODIFIED || action == Action.DELETED) {
+                this.controller.execute(this.writer);
+            }
+        }
+
+        @Override
+        public void onClose(WatcherException cause) {
+            System.err.println("Event Watcher closed: " + cause.getLocalizedMessage());
         }
     }
 }

@@ -239,13 +239,16 @@ model {
         }
         ingress ingress_demo-ingress 'demo-ingress' {
             technology "Ingress"
-            description "demo.example.com"
+            description ""
             metadata {
                 labels '
                     app: frontend
                 '
                 annotations '
                     nginx.ingress.kubernetes.io/rewrite-target: /
+                '
+                hosts '
+                    demo.example.com
                 '
             }
         }

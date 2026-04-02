@@ -1,6 +1,7 @@
 package com.k8stoc4.render;
 
 import com.k8stoc4.model.C4Component;
+import com.k8stoc4.model.C4LabelGroup;
 import com.k8stoc4.model.C4Model;
 import com.k8stoc4.model.C4Namespace;
 import com.k8stoc4.model.C4Relationship;
@@ -10,6 +11,7 @@ import com.k8stoc4.presenter.C4NamespacePresenter;
 import com.k8stoc4.presenter.C4RelationshipPresenter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -17,8 +19,8 @@ import java.util.stream.Collectors;
 public class C4DslRenderer {
     public C4DslRenderer() {}
 
-    public Output render(final C4Model model) {
-        return new Output(renderModel(model), renderSpec(model), renderViews(model));
+    public Output render(final C4Model model, final Set<String> kindExclusions) {
+        return new Output(renderModel(model), renderSpec(model), renderViews(model, kindExclusions));
     }
 
     // Render principale: workspace
@@ -63,23 +65,36 @@ public class C4DslRenderer {
         sb.append(Constants.INDENT.repeat(1)).append("}\n");
         sb.append(Constants.INDENT.repeat(1)).append("element namespace {\n");
         sb.append(Constants.INDENT.repeat(2)).append("style {\n");
+        sb.append(Constants.INDENT.repeat(3)).append("icon /images/namespace.svg\n");
         sb.append(Constants.INDENT.repeat(3)).append("opacity 25%\n");
         sb.append(Constants.INDENT.repeat(2)).append("}\n");
         sb.append(Constants.INDENT.repeat(1)).append("}\n");
+        sb.append(Constants.INDENT.repeat(1)).append("element labelgroup").append("\n");
         for (final String elementName: model.getSpecifications()) {
             if (!"namespace".equals(elementName)) {
-                sb.append(Constants.INDENT.repeat(1)).append("element ").append(elementName).append("\n");
+                sb.append(Constants.INDENT.repeat(1)).append("element ").append(elementName).append("{\n");
+                sb.append(Constants.INDENT.repeat(2)).append("style {\n");
+                sb.append(Constants.INDENT.repeat(3)).append("icon /images/").append(elementName).append(".svg\n");
+                sb.append(Constants.INDENT.repeat(2)).append("}\n");
+                sb.append(Constants.INDENT.repeat(1)).append("}\n");
             }
         }
         sb.append(Constants.INDENT.repeat(1)).append("tag ").append(Constants.SERVICE2SERVICE_TAG).append("\n");
+        sb.append(Constants.INDENT.repeat(1)).append("tag ").append(Constants.EXTERNAL_SERVICE).append("\n");
         sb.append("}\n");
         return sb.toString();
     }
 
-    private String renderViews(final C4Model model) {
+    private String renderViews(final C4Model model, final Set<String> kindExclusions) {
         final Set<C4Component> nodes = model.getClusterScopedComponentsByKind("Node");
         final StringBuilder sb = new StringBuilder();
+        sb.append("global {\n");
+        sb.append(Constants.INDENT.repeat(1)).append("style external_service element.tag = #" + Constants.EXTERNAL_SERVICE + " {\n");
+        sb.append(Constants.INDENT.repeat(2)).append("color indigo\n");
+        sb.append(Constants.INDENT.repeat(1)).append("}\n");
+        sb.append("}\n");
         sb.append("views {\n");
+        sb.append(Constants.INDENT.repeat(1)).append("global style external_service\n");
         sb.append(Constants.INDENT.repeat(1)).append("view namespaces {\n");
         sb.append(Constants.INDENT.repeat(2)).append("title 'Overviews / Namespaces'\n");
         sb.append(Constants.INDENT.repeat(2)).append("include *\n");
@@ -95,11 +110,26 @@ public class C4DslRenderer {
         for (final C4Namespace namespace : model.getNamespaces().values()) {
             sb.append(Constants.INDENT.repeat(1)).append("view of ").append(namespace.getName()).append(" {\n");
             sb.append(Constants.INDENT.repeat(2)).append("title 'Namespaces / ").append(namespace.getName()).append("'\n");
-            sb.append(Constants.INDENT.repeat(2)).append("include *\n");
+            sb.append(Constants.INDENT.repeat(2)).append("include ").append(namespace.getName()).append(".**\n");
             if (!nodes.isEmpty()) {
                 sb.append(Constants.INDENT.repeat(2)).append("exclude ").append(nodes.stream().map(C4Component::getId).collect(Collectors.joining(", "))).append("\n");
             }
+            if (!kindExclusions.isEmpty()) {
+                sb.append(Constants.INDENT.repeat(2)).append("exclude * where ").append(kindExclusions.stream().map(it -> "kind is " + it.toLowerCase(Locale.ENGLISH)).collect(Collectors.joining(" or "))).append("\n");
+            }
             sb.append(Constants.INDENT.repeat(1)).append("}\n");
+            if (!namespace.getLabelGroups().isEmpty()) {
+                sb.append(Constants.INDENT.repeat(1)).append("view ").append(namespace.getName()).append("-labelgroups {\n");
+                sb.append(Constants.INDENT.repeat(2)).append("title 'Namespaces / ").append(namespace.getName()).append(" / LabelGroups'\n");
+                sb.append(Constants.INDENT.repeat(2)).append("include ").append(namespace.getName()).append(".* where kind is labelgroup\n");
+                sb.append(Constants.INDENT.repeat(1)).append("}\n");
+            }
+            for (final C4LabelGroup labelGroup : namespace.getLabelGroups()) {
+                sb.append(Constants.INDENT.repeat(1)).append("view of ").append(namespace.getName()).append(".").append(labelGroup.getName()).append(" {\n");
+                sb.append(Constants.INDENT.repeat(2)).append("title 'Namespaces / ").append(namespace.getName()).append(" / LabelGroups / ").append(labelGroup.getLabelValue()).append("'\n");
+                sb.append(Constants.INDENT.repeat(2)).append("include *\n");
+                sb.append(Constants.INDENT.repeat(1)).append("}\n");
+            }
         }
         sb.append("}\n");
         return sb.toString();

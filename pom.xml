@@ -139,7 +139,7 @@
                 <version>2.1.1</version>
                 <configuration>
                     <!-- (optional) input file name: only this specific file will be made executable -->
-                    <inputFile>target/${project.artifactId}-${version}.jar</inputFile>
+                    <inputFile>target/${project.artifactId}-${project.version}.jar</inputFile>
                     <!-- (optional) classifier name: only artifacts with this classifier are made executable -->
                     <classifier>shaded</classifier>
                     <!-- (optional) support other packaging formats than jar -->
