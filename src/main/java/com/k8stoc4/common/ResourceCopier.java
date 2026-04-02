@@ -5,6 +5,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.FileSystem;
+import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -26,7 +27,7 @@ public class ResourceCopier {
 
         // Handle both IDE (file://) and JAR (jar://) environments
         if (uri.getScheme().equals("jar")) {
-            try (final FileSystem fs = FileSystems.newFileSystem(uri, Collections.emptyMap())) {
+            try (final FileSystem fs = getOrCreateFileSystem(uri)) {
                 final Path source = fs.getPath("/" + resourceDir);
                 copyDirectory(source, destination);
             }
@@ -50,6 +51,14 @@ public class ResourceCopier {
                     Files.copy(sourcePath, target, StandardCopyOption.REPLACE_EXISTING);
                 }
             }
+        }
+    }
+
+    private static FileSystem getOrCreateFileSystem(final URI uri) throws IOException {
+        try {
+            return FileSystems.getFileSystem(uri);
+        } catch (FileSystemNotFoundException e) {
+            return FileSystems.newFileSystem(uri, Collections.emptyMap());
         }
     }
 }
